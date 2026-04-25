@@ -1,39 +1,45 @@
-# 🚀 Task: Update & Perbaikan Tampilan Landing Page LiBooks
+# 🚀 Task: Pembuatan Section Katalog Buku (Beranda)
 
-Halo lagi! 👋 Melanjutkan progress kita di project LiBooks, kali ini ada beberapa penyesuaian dan *polishing* (perbaikan kecil) biar tampilan website kita makin mulus dan interaktif. 
+Halo lagi! 👋 Sekarang kita masuk ke bagian inti dari LiBooks, yaitu menampilkan daftar buku yang ada di perpustakaan kita.
 
-Tugas kali ini fokus pada beberapa penyesuaian jarak, penambahan ikon, animasi menu, dan perbaikan *bug* kecil di versi mobile. Yuk, ikuti langkah-langkah di bawah ini!
+Tugas kali ini lumayan seru: kita akan bikin section "Katalog Buku" lengkap dengan *card* buku yang interaktif, data dummy, dan juga sistem pagination sederhana. Santai aja, ikuti panduan di bawah ini step-by-step ya!
 
 ## 🎯 Daftar Kerjaan (To-Do List)
 
-### 1. Update Spacing (Jarak) di Hero Section
-- **Target**: Berikan jarak ekstra di sisi kanan dan kiri Hero Section sebesar **70px**.
-- **Caranya**: Di elemen container/pembungkus bagian hero (yang berisi teks besar dan gambar), tambahkan padding kiri dan kanan sebesar `70px`. Kalau kamu pakai utility class Tailwind, kamu bisa gunakan arbitrary value seperti `px-[70px]`. Pastikan jarak ini diterapkan dengan rapi, terutama di layar desktop.
+### 1. Buat Header Section Katalog
+- **Target**: Bikin area baru di bawah Hero Section.
+- **Caranya**: Tambahkan section baru. Di bagian atasnya, kasih **Judul Utama** (misal: "Koleksi Buku Kami" atau "Jelajahi Dunia Lewat Membaca"). Di bawah judul, kasih teks deskripsi kecil (subtitle) yang menggambarkan koleksi buku di perpustakaan ini. Bikin tampilannya rata tengah (center) biar cakep.
 
-### 2. Tambah Ikon Orang di Bagian Social Proof
-- **Target**: Bikin bagian "Bergabung dengan 10k+ pembaca aktif" (yang letaknya di bawah tombol Jelajah) jadi lebih hidup.
-- **Caranya**: Di lingkaran-lingkaran kecil (avatar) yang bersebelahan itu, tambahkan ikon orang (user icon). Kamu bisa pakai file SVG (misalnya dari Heroicons) atau font icon. Pastikan ikonnya diletakkan persis di tengah-tengah lingkaran tersebut biar proporsional.
-
-### 3. Update Menu Navbar ("Search" ➡️ "Terbaru")
-- **Target**: Ganti teks menu navigasi.
-- **Caranya**: Cari elemen teks link bertuliskan **"Search"** di area navbar (di bagian tengah), lalu ubah teksnya menjadi **"Terbaru"**.
-
-### 4. Animasi Garis Bawah (Hover Effect) di Menu Navbar
-- **Target**: Menu "Beranda", "Kategory", "Terbaru", dan "Login" harus punya efek garis bawah (border-bottom) yang keren saat di-hover. Animasinya harus bergerak **melebar dari tengah ke arah luar (kiri dan kanan)**.
+### 2. Siapkan 18 Data Dummy & Pagination (Tampil 6 per Halaman)
+- **Target**: Punya data buku bohongan untuk ngetes tampilan.
 - **Caranya**: 
-  - Gunakan trik CSS pseudo-element (`::after`).
-  - Beri posisi `absolute` di bagian bawah teks menu.
-  - Set `width` (lebar) jadi `0%` secara default, posisikan di `left: 50%`, lalu beri properti `transition: all 0.3s ease-in-out` (atau sejenisnya).
-  - Ketika menu di-hover (`:hover::after`), ubah `width` menjadi `100%` dan geser posisi `left` menjadi `0%`. Triks ini bakal menghasilkan efek animasi garis bawah yang *smooth* dari tengah ke samping! Jangan lupa bungkus link-nya dengan class `relative`.
+  - Buat array/list berisi 18 objek data buku (di JavaScript). Data ini harus memuat: `judul`, `penulis`, `penerbit`, `tahun_terbit`, `gambar_sampul`, `deskripsi_singkat`, dan `status` ("tersedia" atau "tidak_tersedia").
+  - Untuk gambar sampul, **jangan pakai warna polos** ya! Cari URL gambar ilustrasi buku yang bagus.
+  - Tampilkan **hanya 6 buku** di halaman pertama. Nanti di bawah daftar buku, buatkan komponen **Pagination** (tombol angka 1, 2, 3) untuk mensimulasikan perpindahan halaman.
 
-### 5. Fix Bug Navbar Tertutup Separuh di Mobile
-- **Target**: Saat ini navbar suka ikut ke-scroll atau hilang separuh saat dibuka lewat HP. Kita harus memastikan navbar ini selalu terlihat penuh dan menempel manis di atas.
-- **Caranya**: 
-  - Cek class yang dipakai pada tag `<nav>`. Pastikan kamu menggunakan kombinasi posisi yang kuat seperti `fixed`, `top-0`, `left-0`, dan `w-full`.
-  - Pastikan juga layer-nya berada paling atas dengan memberikan z-index yang cukup tinggi (misalnya `z-50`).
-  - Jika konten hero terdorong ke atas dan tertutup oleh navbar, tambahkan *padding-top* (misal `pt-20` atau `pt-24`) pada kontainer body/hero section sesuai dengan tinggi navbarnya.
+### 3. Buat Desain Card Buku
+- **Target**: Menampilkan data buku dalam bentuk *card* (kartu) yang rapi.
+- **Caranya**: Susun *card* menggunakan Grid layout (misalnya 3 kolom di desktop, 1 kolom di mobile). Setiap *card* harus menampilkan:
+  - **Sampul Buku**: Taruh di bagian paling atas card.
+  - **Judul, Penulis, Penerbit, Tahun Terbit**: Susun rapi dengan hierarki tipografi yang pas (judul lebih besar/tebal).
+  - **Deskripsi Singkat**: Jangan terlalu panjang, potong aja kalau kepanjangan (bisa pakai utility line-clamp).
+  - **Status Ketersediaan**: Buat sebagai *badge* atau tombol info kecil dengan style `rounded-md`.
+  - **Tombol Aksi**: Siapkan tombol "Pinjam Buku" dan "Detail Buku".
+  - **Link/Clickable**: Berikan fungsi agar saat *card* diklik (atau ada tombol khusus) akan mengarah ke halaman detail. Karena halaman detailnya belum dibikin, kasih atribut `href="#"` atau link *dummy* aja dulu, yang penting atributnya siap disamber.
+  - **Animasi Hover**: Tambahkan efek transisi saat *card* di-hover (misalnya *card* sedikit terangkat ke atas seperti `hover:-translate-y-2` dan shadow-nya menebal).
+
+### 4. Logic Status Ketersediaan (Sangat Penting!)
+- **Target**: Membedakan secara visual antara buku yang bisa dipinjam dan yang tidak.
+- **Caranya**:
+  - **Jika Status = "Tersedia"**: 
+    - Tombol "Pinjam Buku" diberi warna *background* hijau (misal `bg-green-500` atau warna hijau yang kalem), teks putih, dan bisa diklik secara normal.
+  - **Jika Status = "Tidak Tersedia"**: 
+    - Tombol "Pinjam Buku" **tidak boleh punya warna background** (transparan).
+    - Sebagai gantinya, berikan **border warna cokelat** utama kita (misal `border border-[#A86E43]`) dan teks warna cokelat.
+    - Bikin tombol ini *disabled* (tidak bisa diklik, hilangkan efek hover-nya, atau tambah `cursor-not-allowed`).
+    - Bikin keseluruhan *card* buku tersebut menjadi **sedikit transparan** (kasih class seperti `opacity-60` atau `opacity-75`).
 
 ---
 
-**📝 Note untuk yang mengerjakan:**
-Kerjakan per poin ya! Habis ngedit satu bagian, langsung save dan cek hasilnya di browser supaya gampang kalau ada yang salah (terutama buat animasi *hover*-nya). Semangat dan jangan ragu buat eksplorasi CSS-nya! 🔥
+**📝 Note untuk Eksekutor (Kamu yang ngerjain):**
+Tugas ini fokus ke penyiapan struktur data (JS) dan *conditional styling* di HTML/Tailwind (gaya yang berubah tergantung status ketersediaan buku). Buat fungsi render JS sederhana untuk me-looping 6 buku dari 18 data dummy itu ke dalam grid HTML ya. Jangan lupa perhatikan estetika UI-nya biar hasilnya premium! Semangat! 🚀

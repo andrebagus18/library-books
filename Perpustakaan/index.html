@@ -91,7 +91,7 @@
                 <a href="#" class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Sign Up</a>
             </div>
             
-            <!-- Mobile Menu Toggle (Optional but good for responsiveness) -->
+            <!-- Mobile Menu Toggle -->
             <div class="md:hidden">
                 <button id="menu-btn" class="text-slate-800">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,7 +130,7 @@
                     </button>
                 </div>
 
-                <!-- Social Proof / Decorative -->
+                <!-- Social Proof -->
                 <div class="flex items-center space-x-4 pt-4">
                     <div class="flex -space-x-3">
                         <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-300 flex items-center justify-center">
@@ -149,14 +149,9 @@
 
             <!-- Right Column: Visual -->
             <div class="order-1 lg:order-2 relative flex justify-center items-center">
-                <!-- Abstract Background Ornament -->
                 <div class="absolute w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-                
-                <!-- Main Image -->
                 <div class="relative w-full max-w-lg">
                     <img src="hero.png" alt="LiBooks Hero" class="w-full h-auto drop-shadow-2xl rounded-3xl transform -rotate-2 hover:rotate-0 transition-transform duration-500">
-                    
-                    <!-- Floating Ornaments (Stickers) -->
                     <div class="absolute -top-10 -right-10 bg-white p-4 rounded-2xl shadow-xl floating-sticker" style="animation-delay: 0s;">
                         <span class="text-2xl">📚</span>
                     </div>
@@ -171,9 +166,141 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
 
+    <!-- Book Catalog Section -->
+    <section id="katalog" class="py-24 bg-white/50">
+        <div class="container mx-auto px-[70px]">
+            <div class="text-center mb-16 space-y-4">
+                <h2 class="text-4xl md:text-5xl font-bold text-primary">Koleksi Buku Kami</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">
+                    Jelajahi berbagai genre dan temukan cerita yang menginspirasi. Berikut adalah daftar buku terbaru yang tersedia di perpustakaan kami.
+                </p>
+            </div>
+
+            <!-- Book Grid -->
+            <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Books will be injected here -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="flex justify-center items-center space-x-2 mt-16">
+                <!-- Pagination buttons will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Dummy Data: 18 Books
+        const books = [
+            { id: 1, judul: "The Art of Programming", penulis: "John Doe", penerbit: "Tech Press", tahun: 2021, gambar: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Panduan lengkap untuk menguasai seni pemrograman modern.", tersedia: true },
+            { id: 2, judul: "Modern Web Design", penulis: "Jane Smith", penerbit: "Creative Minds", tahun: 2022, gambar: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Eksplorasi tren desain web terbaru untuk tahun 2022.", tersedia: false },
+            { id: 3, judul: "The Future of AI", penulis: "Alan Turing", penerbit: "Future Books", tahun: 2023, gambar: "https://images.unsplash.com/photo-1532012197367-2d4d801e77f9?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Masa depan kecerdasan buatan dan dampaknya bagi manusia.", tersedia: true },
+            { id: 4, judul: "JavaScript Masterclass", penulis: "Brendan Eich", penerbit: "JS Guru", tahun: 2020, gambar: "https://images.unsplash.com/photo-1516339901600-2e1a6298ed70?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Kuasai JavaScript dari dasar hingga tingkat lanjut.", tersedia: true },
+            { id: 5, judul: "UI/UX Essentials", penulis: "Sarah Johnson", penerbit: "Design Co", tahun: 2021, gambar: "https://images.unsplash.com/photo-1589998059171-988d887df646?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Prinsip-prinsip penting dalam desain UI dan UX.", tersedia: false },
+            { id: 6, judul: "The Digital Nomad", penulis: "Chris Brown", penerbit: "Traveler Ink", tahun: 2022, gambar: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Cara menjalani hidup sebagai nomad digital yang sukses.", tersedia: true },
+            { id: 7, judul: "Startup Secrets", penulis: "Elon Musk", penerbit: "Innovation Press", tahun: 2023, gambar: "https://images.unsplash.com/photo-1525547718571-039947963ffb?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Rahasia di balik kesuksesan startup raksasa.", tersedia: true },
+            { id: 8, judul: "Productivity Hacks", penulis: "Tim Ferriss", penerbit: "Efficient Life", tahun: 2021, gambar: "https://images.unsplash.com/photo-1497493292307-31c376b6e479?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Tips praktis untuk meningkatkan produktivitas harian Anda.", tersedia: false },
+            { id: 9, judul: "Data Science 101", penulis: "Andrew Ng", penerbit: "Code Academic", tahun: 2022, gambar: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Langkah awal untuk memahami dunia data science.", tersedia: true },
+            { id: 10, judul: "Creative Writing", penulis: "Ernest Hemingway", penerbit: "Lit Books", tahun: 2020, gambar: "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Teknik menulis kreatif dari sang legenda sastra.", tersedia: true },
+            { id: 11, judul: "The Power of Habits", penulis: "Charles Duhigg", penerbit: "Mind Press", tahun: 2021, gambar: "https://images.unsplash.com/photo-1491843384427-142345037f7a?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Bagaimana kebiasaan terbentuk dan cara mengubahnya.", tersedia: false },
+            { id: 12, judul: "The Infinite Game", penulis: "Simon Sinek", penerbit: "Leadership Hub", tahun: 2022, gambar: "https://images.unsplash.com/photo-1513001900722-370f803f498d?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Strategi kepemimpinan dalam permainan yang tak berakhir.", tersedia: true },
+            { id: 13, judul: "Cyber Security Guide", penulis: "Kevin Mitnick", penerbit: "Secure Ink", tahun: 2023, gambar: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Lindungi data Anda di dunia digital yang berbahaya.", tersedia: true },
+            { id: 14, judul: "Financial Freedom", penulis: "Robert Kiyosaki", penerbit: "Wealth Academy", tahun: 2021, gambar: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Cara cerdas mengelola keuangan untuk masa depan.", tersedia: false },
+            { id: 15, judul: "Healthy Living", penulis: "Dr. Oz", penerbit: "Wellness Pub", tahun: 2022, gambar: "https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Panduan gaya hidup sehat untuk tubuh yang bugar.", tersedia: true },
+            { id: 16, judul: "The Martian", penulis: "Andy Weir", penerbit: "Space Books", tahun: 2020, gambar: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Kisah bertahan hidup seorang astronot di planet Mars.", tersedia: true },
+            { id: 17, judul: "Minimalist Lifestyle", penulis: "Leo Babauta", penerbit: "Zen Life", tahun: 2021, gambar: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Temukan kebahagiaan dalam kesederhanaan.", tersedia: false },
+            { id: 18, judul: "Travel Photography", penulis: "Steve McCurry", penerbit: "Visual Arts", tahun: 2022, gambar: "https://images.unsplash.com/photo-1452784444945-3f422708fe5e?q=80&w=400&h=600&auto=format&fit=crop", deskripsi: "Abadikan momen perjalanan Anda dengan teknik pro.", tersedia: true }
+        ];
+
+        const booksPerPage = 6;
+        let currentPage = 1;
+
+        function renderBooks(page) {
+            const grid = document.getElementById('book-grid');
+            grid.innerHTML = '';
+            
+            const start = (page - 1) * booksPerPage;
+            const end = start + booksPerPage;
+            const paginatedBooks = books.slice(start, end);
+
+            paginatedBooks.forEach(book => {
+                const card = document.createElement('div');
+                card.className = `group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 ${!book.tersedia ? 'opacity-70' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="${book.gambar}" alt="${book.judul}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute top-4 right-4">
+                            <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${book.tersedia ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                                ${book.tersedia ? 'Tersedia' : 'Dipinjam'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="space-y-1">
+                            <h3 class="text-xl font-bold text-slate-800 line-clamp-1">${book.judul}</h3>
+                            <p class="text-sm font-medium text-primary">${book.penulis}</p>
+                        </div>
+                        <div class="flex items-center text-xs text-slate-400 space-x-3">
+                            <span>${book.penerbit}</span>
+                            <span>•</span>
+                            <span>${book.tahun}</span>
+                        </div>
+                        <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                            ${book.deskripsi}
+                        </p>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button ${!book.tersedia ? 'disabled' : ''} class="py-2.5 rounded-xl font-bold text-sm transition-all ${book.tersedia ? 'bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200' : 'border border-primary text-primary cursor-not-allowed'}">
+                                Pinjam Buku
+                            </button>
+                            <a href="#" class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
+                                Detail
+                            </a>
+                        </div>
+                    </div>
+                `;
+                
+                // Add click handler for the whole card
+                card.style.cursor = 'pointer';
+                card.onclick = (e) => {
+                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                        window.location.href = '#'; // Detail page placeholder
+                    }
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const totalPages = Math.ceil(books.length / booksPerPage);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = `w-10 h-10 rounded-xl font-bold transition-all ${currentPage === i ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white text-slate-400 hover:text-primary border border-secondary/30'}`;
+                
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderBooks(currentPage);
+                    renderPagination();
+                    document.getElementById('katalog').scrollIntoView({ behavior: 'smooth' });
+                };
+                
+                pagination.appendChild(btn);
+            }
+        }
+
+        // Initial Render
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBooks(currentPage);
+            renderPagination();
+        });
+    </script>
 </body>
 </html>
