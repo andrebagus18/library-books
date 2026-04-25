@@ -239,7 +239,7 @@
                 card.innerHTML = `
                     <div class="relative h-64 overflow-hidden">
                         <img src="${book.gambar}" alt="${book.judul}" 
-                             onerror="this.src='https://images.unsplash.com/photo-1543004218-ee141104838e?q=80&w=400&h=600&auto=format&fit=crop'"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543004218-ee141104838e?q=80&w=400&h=600&auto=format&fit=crop'"
                              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         <div class="absolute top-4 right-4">
                             <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${isAvailable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">

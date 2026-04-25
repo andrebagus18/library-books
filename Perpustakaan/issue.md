@@ -1,45 +1,49 @@
-# 🚀 Task: Pembuatan Section Katalog Buku (Beranda)
+# 🚀 Task: Perbaikan & Peningkatan Fitur Katalog Buku
 
-Halo lagi! 👋 Sekarang kita masuk ke bagian inti dari LiBooks, yaitu menampilkan daftar buku yang ada di perpustakaan kita.
+Halo tim! 👋 Katalog buku kita udah jalan, tapi masih ada beberapa *bug* dan penambahan fitur yang harus kita kerjain biar makin mantap. 
 
-Tugas kali ini lumayan seru: kita akan bikin section "Katalog Buku" lengkap dengan *card* buku yang interaktif, data dummy, dan juga sistem pagination sederhana. Santai aja, ikuti panduan di bawah ini step-by-step ya!
+Tugas kali ini fokus pada perbaikan gambar, bikin tampilan lebih ramah di HP (mobile responsive), nambahin fitur stok buku, nambah data dummy, dan bikin pagination jadi lebih fungsional. Yuk, sikat!
 
 ## 🎯 Daftar Kerjaan (To-Do List)
 
-### 1. Buat Header Section Katalog
-- **Target**: Bikin area baru di bawah Hero Section.
-- **Caranya**: Tambahkan section baru. Di bagian atasnya, kasih **Judul Utama** (misal: "Koleksi Buku Kami" atau "Jelajahi Dunia Lewat Membaca"). Di bawah judul, kasih teks deskripsi kecil (subtitle) yang menggambarkan koleksi buku di perpustakaan ini. Bikin tampilannya rata tengah (center) biar cakep.
+### 1. Fix Gambar Rusak (Broken Images)
+- **Problem**: Ada beberapa *card* buku yang gambarnya kosong atau gagal di-*load* (karena URL mati).
+- **Solusi**: Cek lagi URL gambar di array data dummy JS. Pastikan semua link pakai URL gambar yang valid. Biar lebih tangguh, tambahkan atribut fallback gambar di tag `<img>` (bisa lewat fungsi JS atau atribut HTML `onerror`) supaya kalau gambar utama error, akan memuat gambar *placeholder* default.
 
-### 2. Siapkan 18 Data Dummy & Pagination (Tampil 6 per Halaman)
-- **Target**: Punya data buku bohongan untuk ngetes tampilan.
-- **Caranya**: 
-  - Buat array/list berisi 18 objek data buku (di JavaScript). Data ini harus memuat: `judul`, `penulis`, `penerbit`, `tahun_terbit`, `gambar_sampul`, `deskripsi_singkat`, dan `status` ("tersedia" atau "tidak_tersedia").
-  - Untuk gambar sampul, **jangan pakai warna polos** ya! Cari URL gambar ilustrasi buku yang bagus.
-  - Tampilkan **hanya 6 buku** di halaman pertama. Nanti di bawah daftar buku, buatkan komponen **Pagination** (tombol angka 1, 2, 3) untuk mensimulasikan perpindahan halaman.
+### 2. Bikin Tampilan Lebih Nyaman di HP (Mobile Responsive)
+- **Problem**: Tampilan katalog mungkin terlalu sesak atau ada margin/padding yang kegedean kalau dibuka di layar HP.
+- **Solusi**: 
+  - Cek padding container katalog. Kalau sebelumnya dipatok statis (misal `px-[70px]`), ubah jadi dinamis, misalnya `px-6 md:px-[70px]` agar di mobile padding-nya mengecil.
+  - Pastikan grid *card* berubah jadi 1 kolom (`grid-cols-1`) di layar kecil, dan ukuran font judul buku disesuaikan biar rapi dan nggak makan tempat berlebihan.
 
-### 3. Buat Desain Card Buku
-- **Target**: Menampilkan data buku dalam bentuk *card* (kartu) yang rapi.
-- **Caranya**: Susun *card* menggunakan Grid layout (misalnya 3 kolom di desktop, 1 kolom di mobile). Setiap *card* harus menampilkan:
-  - **Sampul Buku**: Taruh di bagian paling atas card.
-  - **Judul, Penulis, Penerbit, Tahun Terbit**: Susun rapi dengan hierarki tipografi yang pas (judul lebih besar/tebal).
-  - **Deskripsi Singkat**: Jangan terlalu panjang, potong aja kalau kepanjangan (bisa pakai utility line-clamp).
-  - **Status Ketersediaan**: Buat sebagai *badge* atau tombol info kecil dengan style `rounded-md`.
-  - **Tombol Aksi**: Siapkan tombol "Pinjam Buku" dan "Detail Buku".
-  - **Link/Clickable**: Berikan fungsi agar saat *card* diklik (atau ada tombol khusus) akan mengarah ke halaman detail. Karena halaman detailnya belum dibikin, kasih atribut `href="#"` atau link *dummy* aja dulu, yang penting atributnya siap disamber.
-  - **Animasi Hover**: Tambahkan efek transisi saat *card* di-hover (misalnya *card* sedikit terangkat ke atas seperti `hover:-translate-y-2` dan shadow-nya menebal).
-
-### 4. Logic Status Ketersediaan (Sangat Penting!)
-- **Target**: Membedakan secara visual antara buku yang bisa dipinjam dan yang tidak.
+### 3. Tambah Fitur Stok Buku & Update Aturan Peminjaman
+- **Target**: Menampilkan info stok dan bikin buku hanya bisa dipinjam kalau stok tersedia.
 - **Caranya**:
-  - **Jika Status = "Tersedia"**: 
-    - Tombol "Pinjam Buku" diberi warna *background* hijau (misal `bg-green-500` atau warna hijau yang kalem), teks putih, dan bisa diklik secara normal.
-  - **Jika Status = "Tidak Tersedia"**: 
-    - Tombol "Pinjam Buku" **tidak boleh punya warna background** (transparan).
-    - Sebagai gantinya, berikan **border warna cokelat** utama kita (misal `border border-[#A86E43]`) dan teks warna cokelat.
-    - Bikin tombol ini *disabled* (tidak bisa diklik, hilangkan efek hover-nya, atau tambah `cursor-not-allowed`).
-    - Bikin keseluruhan *card* buku tersebut menjadi **sedikit transparan** (kasih class seperti `opacity-60` atau `opacity-75`).
+  - Di JavaScript (data dummy), tambahkan key/properti baru bernama `stok` (isi dengan angka acak, pastikan ada yang diisi `0` buat ngetes fitur). Kamu tidak perlu lagi properti `tersedia` (boolean) karena sekarang diganti menggunakan logic angka stok.
+  - Di tampilan *card* HTML, tampilkan **"Stok: [jumlah]"** berjejeran atau digabung dengan info *Author*, *Publisher*, dan *Year*.
+  - **Update Logic Status**: 
+    - Jika `stok > 0`: Tombol "Pinjam Buku" berwarna hijau dan aktif. Card cerah.
+    - Jika `stok === 0`: Tombol "Pinjam Buku" menjadi transparan dengan *border* cokelat (warna utama kita), tidak bisa diklik (*disabled*), dan teks berubah jadi "Stok Habis". Card buku tersebut juga dibuat sedikit transparan (contoh: class `opacity-70`).
+
+### 4. Tambah 5 Data Dummy Baru
+- **Target**: Biar koleksi buku makin banyak untuk ngetes *pagination*.
+- **Caranya**: Tambahkan 5 data buku baru ke dalam array data dummy JS. Lengkapi semua informasinya (judul, penulis, penerbit, tahun, gambar, deskripsi, dan stok).
+
+### 5. Upgrade Pagination (Tambah Tombol Prev & Next)
+- **Target**: Memudahkan navigasi perpindahan halaman.
+- **Caranya**:
+  - Ubah kode JS pembentuk *pagination*. Selain menghasilkan tombol angka (1, 2, 3), buatkan tombol khusus untuk **Prev** (Sebelumnya) di posisi paling kiri, dan **Next** (Selanjutnya) di posisi paling kanan.
+  - **Aturan Prev**: Berfungsi mengurangi angka halaman. Tombol ini harus mati (*disabled*) atau disembunyikan kalau *user* sedang berada di Halaman 1.
+  - **Aturan Next**: Berfungsi menambah angka halaman. Tombol ini harus mati (*disabled*) kalau *user* sedang berada di halaman terakhir.
 
 ---
 
 **📝 Note untuk Eksekutor (Kamu yang ngerjain):**
-Tugas ini fokus ke penyiapan struktur data (JS) dan *conditional styling* di HTML/Tailwind (gaya yang berubah tergantung status ketersediaan buku). Buat fungsi render JS sederhana untuk me-looping 6 buku dari 18 data dummy itu ke dalam grid HTML ya. Jangan lupa perhatikan estetika UI-nya biar hasilnya premium! Semangat! 🚀
+Ngerjainnya urut aja dari nomor 1 sampai 5. Tantangan serunya ada di merombak logic JS untuk ngebaca nilai `stok` alih-alih nilai boolean, dan juga ngebangun logic Prev/Next di pagination. Rajin-rajin ngetes di tampilan *mobile* ya. Semangat ngoding! 🚀
+
+---
+
+### 🐛 Bug Report (Sudah Diperbaiki)
+**Masalah**: Terjadi *infinite loop* (looping tanpa henti) pada JavaScript yang menyebabkan *browser* *freeze* atau *crash*.
+**Penyebab**: Atribut `onerror` pada tag `<img>` mencoba memuat URL *fallback* (gambar cadangan). Namun, ketika URL *fallback* tersebut juga gagal dimuat, *event* `onerror` akan terus memanggil dirinya sendiri secara berulang-ulang tanpa batas.
+**Solusi**: Menghentikan *loop* dengan menetapkan `this.onerror=null;` sebelum menetapkan `this.src` yang baru. Hal ini memastikan bahwa jika gambar cadangan juga gagal, *browser* tidak akan memicu *event* `onerror` lagi.
