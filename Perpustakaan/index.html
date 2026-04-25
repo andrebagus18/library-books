@@ -32,10 +32,28 @@
             background-color: #E0E0E0;
         }
         .glass-nav {
-            background: rgba(224, 224, 224, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(224, 224, 224, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-link {
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #A86E43;
+            transition: all 0.3s ease-in-out;
+            transform: translateX(-50%);
+        }
+        .nav-link:hover::after {
+            width: 100%;
         }
         .hero-gradient {
             background: radial-gradient(circle at top right, rgba(168, 110, 67, 0.05), transparent);
@@ -62,14 +80,14 @@
 
             <!-- Middle: Navigation -->
             <div class="hidden md:flex items-center space-x-8">
-                <a href="#" class="font-medium hover:text-primary transition-colors">Beranda</a>
-                <a href="#" class="font-medium hover:text-primary transition-colors">Kategory</a>
-                <a href="#" class="font-medium hover:text-primary transition-colors">Search</a>
+                <a href="#" class="nav-link font-medium hover:text-primary transition-colors">Beranda</a>
+                <a href="#" class="nav-link font-medium hover:text-primary transition-colors">Kategory</a>
+                <a href="#" class="nav-link font-medium hover:text-primary transition-colors">Terbaru</a>
             </div>
 
             <!-- Right: Auth -->
             <div class="flex items-center space-x-4">
-                <a href="#" class="font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
+                <a href="#" class="nav-link font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
                 <a href="#" class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Sign Up</a>
             </div>
             
@@ -85,8 +103,8 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center pt-20 hero-gradient">
-        <div class="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <section class="relative min-h-screen flex items-center pt-24 hero-gradient">
+        <div class="container mx-auto px-[70px] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
             <!-- Left Column: Content -->
             <div class="order-2 lg:order-1 space-y-8">
@@ -115,9 +133,15 @@
                 <!-- Social Proof / Decorative -->
                 <div class="flex items-center space-x-4 pt-4">
                     <div class="flex -space-x-3">
-                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-300"></div>
-                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-400"></div>
-                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-500"></div>
+                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-300 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-400 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-500 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-slate-200" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                        </div>
                     </div>
                     <p class="text-sm text-slate-500 font-medium">Bergabung dengan 10k+ pembaca aktif</p>
                 </div>

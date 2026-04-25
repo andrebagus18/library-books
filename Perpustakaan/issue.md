@@ -1,47 +1,39 @@
-# 🚀 Task: Pembuatan Halaman Utama LiBooks (Web Management Books)
+# 🚀 Task: Update & Perbaikan Tampilan Landing Page LiBooks
 
-Halo! 👋 Selamat datang di project LiBooks. Di task kali ini, misi utamanya adalah membangun halaman muka (landing page) yang kece, responsif, dan pastinya memanjakan mata pengunjung.
+Halo lagi! 👋 Melanjutkan progress kita di project LiBooks, kali ini ada beberapa penyesuaian dan *polishing* (perbaikan kecil) biar tampilan website kita makin mulus dan interaktif. 
 
-Biar gampang, kita breakdown langkah-langkahnya ya. Ikuti aja step-by-step di bawah ini:
+Tugas kali ini fokus pada beberapa penyesuaian jarak, penambahan ikon, animasi menu, dan perbaikan *bug* kecil di versi mobile. Yuk, ikuti langkah-langkah di bawah ini!
 
-## 🛠️ Persiapan Awal
-1. **Buat file `index.html`**: Bikin file baru dengan nama `index.html` di root folder project.
-2. **Setup Tailwind CSS via CDN**: Gak perlu repot install npm dulu, cukup pasang script Tailwind CSS CDN di bagian `<head>` file `index.html` kamu.
+## 🎯 Daftar Kerjaan (To-Do List)
 
-## 🎨 Design Guidelines (Aturan Main Warna & Gaya)
-- **Warna Aksen Utama (`#A86E43`)**: Gunakan warna coklat elegan ini untuk elemen penting, seperti teks judul utama atau tombol aksi (Call to Action / CTA). Bebas berkreasi, yang penting kelihatan cakep!
-- **Warna Background(`#E0E0E0`)**: Pakai warna abu-abu terang ini untuk warna latar belakang (background) atau ornamen-ornamen pendukung supaya tampilannya kalem dan bersih.
-- **Warna pendukung** : gunakan warna pendukung lain sesauikan UI nya biar keren dan estetik.
+### 1. Update Spacing (Jarak) di Hero Section
+- **Target**: Berikan jarak ekstra di sisi kanan dan kiri Hero Section sebesar **70px**.
+- **Caranya**: Di elemen container/pembungkus bagian hero (yang berisi teks besar dan gambar), tambahkan padding kiri dan kanan sebesar `70px`. Kalau kamu pakai utility class Tailwind, kamu bisa gunakan arbitrary value seperti `px-[70px]`. Pastikan jarak ini diterapkan dengan rapi, terutama di layar desktop.
 
-## 🧱 Struktur Halaman (Bikin Layout-nya)
+### 2. Tambah Ikon Orang di Bagian Social Proof
+- **Target**: Bikin bagian "Bergabung dengan 10k+ pembaca aktif" (yang letaknya di bawah tombol Jelajah) jadi lebih hidup.
+- **Caranya**: Di lingkaran-lingkaran kecil (avatar) yang bersebelahan itu, tambahkan ikon orang (user icon). Kamu bisa pakai file SVG (misalnya dari Heroicons) atau font icon. Pastikan ikonnya diletakkan persis di tengah-tengah lingkaran tersebut biar proporsional.
 
-### 1. Navigation Bar (Navbar)
-Navbar ini diletakkan paling atas ya buat agar tetap diatas ketika di scroll.
-- **Kiri**: Teks logo / brand name **"LiBooks"** (Bikin agak tebal/bold biar standout).
-- **Tengah**: Menu navigasi yang berisi: **Search**, **Beranda**, dan **Kategory**. (Sejajarkan secara horizontal dan kasih jarak yang enak dilihat).
-- **Kanan**: Tombol **"Login"** dan **"Sign Up"**. (Bisa dibedakan stylenya, misal "Sign Up" pakai warna background `#A86E43` dan teks putih).
+### 3. Update Menu Navbar ("Search" ➡️ "Terbaru")
+- **Target**: Ganti teks menu navigasi.
+- **Caranya**: Cari elemen teks link bertuliskan **"Search"** di area navbar (di bagian tengah), lalu ubah teksnya menjadi **"Terbaru"**.
 
-### 2. Hero Section (Bagian Utama yang Langsung Kelihatan)
-Bagian ini wajib **Full Screen** (tingginya memenuhi layar, di Tailwind bisa pakai class `h-screen` atau `min-h-screen`). 
+### 4. Animasi Garis Bawah (Hover Effect) di Menu Navbar
+- **Target**: Menu "Beranda", "Kategory", "Terbaru", dan "Login" harus punya efek garis bawah (border-bottom) yang keren saat di-hover. Animasinya harus bergerak **melebar dari tengah ke arah luar (kiri dan kanan)**.
+- **Caranya**: 
+  - Gunakan trik CSS pseudo-element (`::after`).
+  - Beri posisi `absolute` di bagian bawah teks menu.
+  - Set `width` (lebar) jadi `0%` secara default, posisikan di `left: 50%`, lalu beri properti `transition: all 0.3s ease-in-out` (atau sejenisnya).
+  - Ketika menu di-hover (`:hover::after`), ubah `width` menjadi `100%` dan geser posisi `left` menjadi `0%`. Triks ini bakal menghasilkan efek animasi garis bawah yang *smooth* dari tengah ke samping! Jangan lupa bungkus link-nya dengan class `relative`.
 
-Bagi hero section ini jadi 2 kolom (kiri dan kanan) untuk tampilan desktop:
-
-**Kolom Kiri (Konten Teks & Pencarian):**
-- **Teks Judul Besar**: **"The LiBooks,"** (Bisa pakai ukuran teks yang super gede, misalnya `text-5xl` ke atas dan kasih warna `#A86E43`).
-- **Teks Sub-judul (Kecil/Sedang)**: Di bawah judul, tambahkan teks: *"Browse from the largest collection of books Read stories from anywhere, at anytime."*
-- **Form Pencarian**: Di bawah sub-judul, buat form pencarian yang terdiri dari:
-  - Input text dengan placeholder: *"Cari judul atau penulis buku"*
-  - Tombol dengan tulisan: **"Jelajah"** (Gunakan warna `#A86E43` untuk tombol ini). Bikin input dan tombolnya nyambung atau sebelahan yang rapi.
-
-**Kolom Kanan (Visual / Gambar):**
-- **Gambar Utama**: Pasang gambar `hero.png` (asumsikan filenya ada di folder yang sama atau folder assets).
-- **Ornamen/Aksen Tambahan**: Tambahkan elemen visual pemanis (seperti stiker, shape abstrak, atau pattern) di sekitar gambar. **Catatan penting:** pastikan ornamen ini cuma jadi pendukung aja dan *jangan sampai menutupi atau mengganggu fokus* dari gambar `hero.png` itu sendiri.
-
-## 📱 Responsiveness (Wajib Tampil Kece di HP!)
-- Pastikan desain ini responsif sampai ke ukuran layar HP (mobile).
-- Tips: Di layar HP, navbar mungkin jadi hamburger menu (atau disembunyikan/disederhanakan), dan Hero Section yang tadinya 2 kolom kiri-kanan, berubah jadi atas-bawah (gambar di atas, teks di bawah, atau sebaliknya). Gunakan utility classes responsive dari Tailwind (seperti `md:`, `lg:`) buat ngatur ini.
+### 5. Fix Bug Navbar Tertutup Separuh di Mobile
+- **Target**: Saat ini navbar suka ikut ke-scroll atau hilang separuh saat dibuka lewat HP. Kita harus memastikan navbar ini selalu terlihat penuh dan menempel manis di atas.
+- **Caranya**: 
+  - Cek class yang dipakai pada tag `<nav>`. Pastikan kamu menggunakan kombinasi posisi yang kuat seperti `fixed`, `top-0`, `left-0`, dan `w-full`.
+  - Pastikan juga layer-nya berada paling atas dengan memberikan z-index yang cukup tinggi (misalnya `z-50`).
+  - Jika konten hero terdorong ke atas dan tertutup oleh navbar, tambahkan *padding-top* (misal `pt-20` atau `pt-24`) pada kontainer body/hero section sesuai dengan tinggi navbarnya.
 
 ---
 
 **📝 Note untuk yang mengerjakan:**
-Kerjainnya pelan-pelan aja, yang penting rapi dan sesuai instruksi. Jangan ragu buat ngecek dokumentasi Tailwind CSS kalau ada class yang lupa. Semangat codingnya! 🔥
+Kerjakan per poin ya! Habis ngedit satu bagian, langsung save dan cek hasilnya di browser supaya gampang kalau ada yang salah (terutama buat animasi *hover*-nya). Semangat dan jangan ragu buat eksplorasi CSS-nya! 🔥
