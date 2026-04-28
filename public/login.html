@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LiBooks - Login & Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#A86E43",
+            secondary: "#E0E0E0",
+            accent: "#F5F5F5",
+          },
+          fontFamily: {
+            outfit: ["Outfit", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: "Outfit", sans-serif;
+      background-color: #e0e0e0;
+    }
+
+    /* Hero Slide Animation */
+    #hero-overlay {
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+    }
+
+    /* Content Fade Animation inside Hero */
+    .hero-content {
+      transition: opacity 0.4s ease-in-out, transform 0.6s ease-out;
+    }
+
+    .hero-hidden {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
+
+    /* Divider Styling */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e2e8f0;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Mobile handling: Hero is hidden, forms are just toggled */
+    @media (max-width: 767px) {
+      #hero-overlay {
+        display: none;
+      }
+      .form-panel {
+        width: 100% !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: opacity 0.5s ease;
+      }
+      .form-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="h-screen overflow-hidden flex items-center justify-center bg-secondary/30">
+  <!-- Container Utama -->
+  <div id="auth-container" class="w-full h-full md:h-[85vh] md:max-w-6xl bg-white md:rounded-[40px] shadow-2xl overflow-hidden relative">
+
+    <!-- FORMS LAYER -->
+    <div class="flex w-full h-full relative">
+      
+      <!-- Panel Kiri: Form Login -->
+      <div id="login-panel" class="form-panel w-full md:w-1/2 h-full p-6 md:p-10 flex flex-col justify-center bg-white z-10 transition-all duration-500">
+        <div class="space-y-5 max-w-sm mx-auto w-full">
+          <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Masuk ke Akun</h1>
+            <p class="text-xs md:text-sm text-slate-500">Masukkan email dan password Anda</p>
+          </div>
+          <form onsubmit="handleLogin(event)" class="space-y-4">
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
+              <input type="email" id="login-email" placeholder="admin@libooks.com" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+            </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <label class="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Password</label>
+                <a href="#" class="text-[10px] font-bold text-primary hover:underline">Lupa Password?</a>
+              </div>
+              <div class="relative">
+                <input type="password" id="login-password" placeholder="••••••••" required
+                  class="w-full px-4 pr-11 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+                <button type="button" onclick="togglePassword('login-password', this)"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all">
+              Masuk
+            </button>
+          </form>
+          <div class="divider">atau</div>
+          <button class="w-full flex items-center justify-center gap-3 py-3 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
+            Masuk dengan Google
+          </button>
+          <p class="text-center text-xs md:text-sm text-slate-500 md:hidden">
+            Belum punya akun? <button onclick="toggleMobileSlide()" class="font-bold text-primary hover:underline">Daftar</button>
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel Kanan: Form Register -->
+      <div id="register-panel" class="form-panel w-full md:w-1/2 h-full p-6 md:p-10 flex flex-col justify-center bg-white z-10 transition-all duration-500">
+        <div class="space-y-5 max-w-sm mx-auto w-full">
+          <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Buat Akun</h1>
+            <p class="text-xs md:text-sm text-slate-500">Mulai perjalanan membaca Anda hari ini</p>
+          </div>
+          <form onsubmit="handleRegister(event)" class="space-y-3.5">
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Nama Lengkap</label>
+              <input type="text" id="reg-name" placeholder="Nama Lengkap" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
+              <input type="email" id="reg-email" placeholder="contoh@mail.com" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Password</label>
+                <input type="password" id="reg-password" placeholder="••••••••" required
+                  class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Konfirmasi</label>
+                <input type="password" id="reg-confirm" placeholder="••••••••" required
+                  class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all">
+              Daftar Sekarang
+            </button>
+          </form>
+          <div class="divider text-xs">atau</div>
+          <button class="w-full flex items-center justify-center gap-3 py-2.5 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-xs">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
+            Daftar dengan Google
+          </button>
+          <p class="text-center text-xs text-slate-500 md:hidden">
+            Sudah punya akun? <button onclick="toggleMobileSlide()" class="font-bold text-primary hover:underline">Masuk</button>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HERO OVERLAY (Only Desktop) -->
+    <div id="hero-overlay" class="hidden md:flex absolute top-0 right-0 w-1/2 h-full bg-primary z-20 flex-col items-center justify-center text-center text-white overflow-hidden">
+      <!-- Ornamen Blur -->
+      <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+
+      <!-- Hero Content Login (Shown when Hero is on the right) -->
+      <div id="hero-login-content" class="hero-content relative z-10 space-y-6 p-12">
+        <div class="relative inline-block">
+          <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
+          <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform -rotate-2" />
+        </div>
+        <h2 class="text-3xl font-bold">Selamat Datang Kembali</h2>
+        <p class="text-white/80 text-sm leading-relaxed max-w-xs mx-auto">
+          Libooks adalah platform perpustakaan online terbaik, dengan ribuan koleksi buku yang siap menemani waktu luangmu.
+        </p>
+      </div>
+
+      <!-- Hero Content Register (Shown when Hero is on the left) -->
+      <div id="hero-register-content" class="hero-content hero-hidden absolute inset-0 flex flex-col items-center justify-center z-10 space-y-6 p-12">
+        <div class="relative inline-block">
+          <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
+          <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform rotate-2" />
+        </div>
+        <h2 class="text-3xl font-bold">Bergabung Bersama Kami</h2>
+        <p class="text-white/80 text-sm leading-relaxed max-w-xs mx-auto">
+          Daftar dan dapatkan akses ke ribuan koleksi buku tanpa batas!
+        </p>
+      </div>
+    </div>
+
+    <!-- Floating Slide Button (Fixed in Center) -->
+    <button id="slide-trigger" onclick="toggleSlide()" 
+            class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40
+                   w-14 h-14 rounded-full bg-white text-primary
+                   items-center justify-center
+                   shadow-2xl border-4 border-secondary/30 hover:scale-110 transition-all active:scale-95 group">
+      <svg id="trigger-icon" class="w-8 h-8 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+  </div>
+
+  <script>
+    let isRegister = false;
+
+    // Handle initial state via hash
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#register') {
+        toggleSlide();
+      }
+    });
+
+    function toggleSlide() {
+      if (window.innerWidth < 768) {
+        toggleMobileSlide();
+        return;
+      }
+
+      isRegister = !isRegister;
+      const hero = document.getElementById('hero-overlay');
+      const triggerIcon = document.getElementById('trigger-icon');
+      const loginContent = document.getElementById('hero-login-content');
+      const registerContent = document.getElementById('hero-register-content');
+
+      if (isRegister) {
+        // Move Hero to LEFT
+        hero.style.transform = 'translateX(-100%)';
+        // Rotate icon
+        triggerIcon.style.transform = 'rotate(180deg)';
+        
+        // Change Hero Content
+        loginContent.classList.add('hero-hidden');
+        setTimeout(() => {
+          registerContent.classList.remove('hero-hidden');
+        }, 200);
+
+        window.location.hash = 'register';
+      } else {
+        // Move Hero back to RIGHT
+        hero.style.transform = 'translateX(0)';
+        // Rotate icon back
+        triggerIcon.style.transform = 'rotate(0deg)';
+
+        // Change Hero Content back
+        registerContent.classList.add('hero-hidden');
+        setTimeout(() => {
+          loginContent.classList.remove('hero-hidden');
+        }, 200);
+
+        window.location.hash = 'login';
+      }
+    }
+
+    // Simple mobile toggle
+    function toggleMobileSlide() {
+      const login = document.getElementById('login-panel');
+      const register = document.getElementById('register-panel');
+      
+      if (login.classList.contains('form-hidden')) {
+        login.classList.remove('form-hidden');
+        register.classList.add('form-hidden');
+        window.location.hash = 'login';
+      } else {
+        login.classList.add('form-hidden');
+        register.classList.remove('form-hidden');
+        window.location.hash = 'register';
+      }
+    }
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.classList.toggle('text-primary');
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      if (email === 'admin@libooks.com' && password === 'admin123') {
+        alert('Login berhasil! Selamat datang 👋');
+        window.location.href = '../index.html';
+      } else {
+        alert('Email atau password salah! Coba admin@libooks.com / admin123');
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      alert('Registrasi berhasil! Silakan login 🎉');
+      toggleSlide();
+    }
+  </script>
+</body>
+
+</html>

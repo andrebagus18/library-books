@@ -2,12 +2,22 @@ buatkan issue.md yang berisi perencanaaan untuk nanti di implementasikan oleh ju
 
 isi dari planning nya adalah:
 
-- buat halaman section carousel/slider ke kiri dan kanan( gunakan panah kiri dan kanan), yang menampilkan list session. gunakan dummy data untuk session ini.(8 data).
-- 1 halaman isi dengan 1 buku, sebelah kiri cover buku sebelah kanan informasi buku(judul, penulis, penerbit, tahun, deskripsi(buat 200 kata), stok, kategori).
+- buat modal untuk detail buku untuk tombol detail di halaman katalog, dan modal untuk detail di halaman terbaru
 
--lanjut halaman subscribe, berikan input email, dan tombol subscribe. jika di klik akan menampilkan pesan alert custom , "Terima kasih telah subscribe", dengan aksen backgroun hijau transparan yang smooth serta icon centang, jangan terlalu besar tampilannya. letakan di bawah input email
+*Halaman Carousel:
+- hilangkan ini (d="M9 5l7 7-7 7" >)
+- buat judul dan isinya rata tengah
+- ganti gambarnya randoom juga di file "images"
+- sinopsis pada dekstop berikan 300 kata saja., 200 kata tablet, 100 mobile, sisanya bisa kasih titik-titik saja.
+- pergeseran gambar 1 ke gambar lainnya, berikan pergerakan yang smooth, jangan kasar gitu,
+- tombol prev dan next terlalu mepet jendela samping, berikan margin
+- jarak judul , keterangan , sinopsis dan tombol terlalu jauh rapatkan sedikit 30px
 
-- lanjut bagian footer, pada bagian ini kasih copyright dan tahunnya. gunakan background warna cokelat seperti di bagian hero. dan juga kasih sedikit margin top di bagian footer. jangan terlalu besar 
+
+*Halaman dibawah carousel:
+-  judul "Mari Terhubung!" itu letakkan diluar container coklat, 
+
+*cek responsive pada mobile , bagian kanan ada yang keluar
 
 jelaskan tahapan-tahapan yang harus dilakukan untuk mengimplementasikan fitur ini, anggap nanti yang mengimplementasikan adalah junior programmer atau ai model yang lebih murah.
 
