@@ -31,15 +31,20 @@
       background-color: #e0e0e0;
     }
 
-    /* Smooth Slide Transition */
-    #auth-track {
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Hero Slide Animation */
+    #hero-overlay {
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
-    /* Input Focus Effect */
-    input:focus {
-      border-color: #A86E43;
-      box-shadow: 0 0 0 3px rgba(168, 110, 67, 0.15);
+    /* Content Fade Animation inside Hero */
+    .hero-content {
+      transition: opacity 0.4s ease-in-out, transform 0.6s ease-out;
+    }
+
+    .hero-hidden {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
     }
 
     /* Divider Styling */
@@ -48,7 +53,7 @@
       align-items: center;
       gap: 12px;
       color: #94a3b8;
-      font-size: 0.875rem;
+      font-size: 0.75rem;
     }
 
     .divider::before,
@@ -59,7 +64,6 @@
       background: #e2e8f0;
     }
 
-    /* Scrollbar hide for the track container if needed */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -68,6 +72,24 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* Mobile handling: Hero is hidden, forms are just toggled */
+    @media (max-width: 767px) {
+      #hero-overlay {
+        display: none;
+      }
+      .form-panel {
+        width: 100% !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: opacity 0.5s ease;
+      }
+      .form-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
   </style>
 </head>
 
@@ -75,265 +97,230 @@
   <!-- Container Utama -->
   <div id="auth-container" class="w-full h-full md:h-[85vh] md:max-w-6xl bg-white md:rounded-[40px] shadow-2xl overflow-hidden relative">
 
-    <!-- Auth Track -->
-    <div id="auth-track" class="flex w-[200%] h-full">
-
-      <!-- ==================== SLIDE 1: LOGIN ==================== -->
-      <div class="w-1/2 flex flex-col md:flex-row h-full relative">
-        <!-- Form Section -->
-        <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center bg-white h-full overflow-y-auto no-scrollbar">
-          <div class="space-y-6 max-w-sm mx-auto w-full">
-            <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
-
+    <!-- FORMS LAYER -->
+    <div class="flex w-full h-full relative">
+      
+      <!-- Panel Kiri: Form Login -->
+      <div id="login-panel" class="form-panel w-full md:w-1/2 h-full p-6 md:p-10 flex flex-col justify-center bg-white z-10 transition-all duration-500">
+        <div class="space-y-5 max-w-sm mx-auto w-full">
+          <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Masuk ke Akun</h1>
+            <p class="text-xs md:text-sm text-slate-500">Masukkan email dan password Anda</p>
+          </div>
+          <form onsubmit="handleLogin(event)" class="space-y-4">
             <div class="space-y-1">
-              <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Masuk ke Akun</h1>
-              <p class="text-xs md:text-sm text-slate-500">Masukkan email dan password Anda</p>
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
+              <input type="email" id="login-email" placeholder="admin@libooks.com" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
             </div>
-
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-              <div class="space-y-1">
-                <label class="text-xs font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
-                <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </span>
-                  <input type="email" id="login-email" placeholder="admin@libooks.com" required
-                    class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
-                </div>
+            <div class="space-y-1">
+              <div class="flex justify-between items-center px-1">
+                <label class="text-[10px] font-semibold text-slate-700 uppercase tracking-wider">Password</label>
+                <a href="#" class="text-[10px] font-bold text-primary hover:underline">Lupa Password?</a>
               </div>
-
-              <div class="space-y-1">
-                <div class="flex justify-between items-center px-1">
-                  <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Password</label>
-                  <a href="#" class="text-[10px] font-bold text-primary hover:underline">Lupa Password?</a>
-                </div>
-                <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </span>
-                  <input type="password" id="login-password" placeholder="••••••••" required
-                    class="w-full pl-11 pr-11 py-3 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
-                  <button type="button" onclick="togglePassword('login-password', this)"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
-                </div>
+              <div class="relative">
+                <input type="password" id="login-password" placeholder="••••••••" required
+                  class="w-full px-4 pr-11 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+                <button type="button" onclick="togglePassword('login-password', this)"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
               </div>
-
-              <button type="submit"
-                class="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all">
-                Masuk
-              </button>
-            </form>
-
-            <div class="divider">atau</div>
-
-            <button class="w-full flex items-center justify-center gap-3 py-3 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-sm">
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
-              Masuk dengan Google
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all">
+              Masuk
             </button>
-
-            <p class="text-center text-xs md:text-sm text-slate-500">
-              Belum punya akun?
-              <button onclick="slideToRegister()" class="font-bold text-primary hover:underline">Daftar Sekarang</button>
-            </p>
-          </div>
+          </form>
+          <div class="divider">atau</div>
+          <button class="w-full flex items-center justify-center gap-3 py-3 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-sm">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
+            Masuk dengan Google
+          </button>
+          <p class="text-center text-xs md:text-sm text-slate-500 md:hidden">
+            Belum punya akun? <button onclick="toggleMobileSlide()" class="font-bold text-primary hover:underline">Daftar</button>
+          </p>
         </div>
-
-        <!-- Hero Section -->
-        <div class="hidden md:flex w-1/2 bg-primary relative p-12 flex-col items-center justify-center text-center text-white space-y-6 h-full">
-          <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
-          <div class="relative z-10 space-y-6">
-            <div class="relative inline-block">
-              <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
-              <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform -rotate-2" />
-            </div>
-            <h2 class="text-2xl md:text-3xl font-bold">Selamat Datang Kembali</h2>
-            <p class="text-white/80 text-xs md:text-sm leading-relaxed max-w-xs mx-auto">
-              Libooks adalah platform perpustakaan online terbaik, dengan ribuan koleksi buku yang siap menemani waktu luangmu.
-            </p>
-          </div>
-        </div>
-
-        <!-- Floating Button Next (Login -> Register) -->
-        <button onclick="slideToRegister()" id="btn-next" aria-label="Ke Register" 
-          class="hidden md:flex absolute right-[50%] translate-x-1/2 top-1/2 -translate-y-1/2 z-30
-                 w-12 h-12 rounded-full bg-white text-primary
-                 items-center justify-center
-                 shadow-xl border-4 border-secondary/20 hover:scale-110 transition-all active:scale-95">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
 
-
-      <!-- ==================== SLIDE 2: REGISTER ==================== -->
-      <div class="w-1/2 flex flex-col md:flex-row-reverse h-full relative">
-        <!-- Form Section -->
-        <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center bg-white h-full overflow-y-auto no-scrollbar">
-          <div class="space-y-5 max-w-sm mx-auto w-full">
-            <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
-
+      <!-- Panel Kanan: Form Register -->
+      <div id="register-panel" class="form-panel w-full md:w-1/2 h-full p-6 md:p-10 flex flex-col justify-center bg-white z-10 transition-all duration-500">
+        <div class="space-y-5 max-w-sm mx-auto w-full">
+          <div class="text-2xl font-bold text-primary tracking-tight">LiBooks</div>
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Buat Akun</h1>
+            <p class="text-xs md:text-sm text-slate-500">Mulai perjalanan membaca Anda hari ini</p>
+          </div>
+          <form onsubmit="handleRegister(event)" class="space-y-3.5">
             <div class="space-y-1">
-              <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Buat Akun</h1>
-              <p class="text-xs md:text-sm text-slate-500">Mulai perjalanan membaca Anda hari ini</p>
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Nama Lengkap</label>
+              <input type="text" id="reg-name" placeholder="Nama Lengkap" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
             </div>
-
-            <form onsubmit="handleRegister(event)" class="space-y-3.5">
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
+              <input type="email" id="reg-email" placeholder="contoh@mail.com" required
+                class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Nama Lengkap</label>
-                <input type="text" id="reg-name" placeholder="Nama Lengkap" required
+                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Password</label>
+                <input type="password" id="reg-password" placeholder="••••••••" required
                   class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
               </div>
-
               <div class="space-y-1">
-                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Email</label>
-                <input type="email" id="reg-email" placeholder="contoh@mail.com" required
+                <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Konfirmasi</label>
+                <input type="password" id="reg-confirm" placeholder="••••••••" required
                   class="w-full px-4 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
               </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Password</label>
-                  <div class="relative">
-                    <input type="password" id="reg-password" placeholder="••••••••" required
-                      class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
-                    <button type="button" onclick="togglePassword('reg-password', this)"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div class="space-y-1">
-                  <label class="text-[10px] font-semibold text-slate-700 ml-1 uppercase tracking-wider">Konfirmasi</label>
-                  <div class="relative">
-                    <input type="password" id="reg-confirm" placeholder="••••••••" required
-                      class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-secondary rounded-2xl outline-none transition-all focus:bg-white text-sm" />
-                    <button type="button" onclick="togglePassword('reg-confirm', this)"
-                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button type="submit"
-                class="w-full bg-primary text-white py-3 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all mt-1">
-                Daftar Sekarang
-              </button>
-            </form>
-
-            <div class="divider text-xs">atau</div>
-
-            <button class="w-full flex items-center justify-center gap-3 py-2.5 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-xs">
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
-              Daftar dengan Google
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all">
+              Daftar Sekarang
             </button>
-
-            <p class="text-center text-xs text-slate-500">
-              Sudah punya akun?
-              <button onclick="slideToLogin()" class="font-bold text-primary hover:underline">Masuk</button>
-            </p>
-          </div>
+          </form>
+          <div class="divider text-xs">atau</div>
+          <button class="w-full flex items-center justify-center gap-3 py-2.5 border border-secondary rounded-2xl font-semibold text-slate-700 hover:bg-slate-50 transition-all text-xs">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google" />
+            Daftar dengan Google
+          </button>
+          <p class="text-center text-xs text-slate-500 md:hidden">
+            Sudah punya akun? <button onclick="toggleMobileSlide()" class="font-bold text-primary hover:underline">Masuk</button>
+          </p>
         </div>
-
-        <!-- Hero Section -->
-        <div class="hidden md:flex w-1/2 bg-primary relative p-12 flex-col items-center justify-center text-center text-white space-y-6 h-full">
-          <div class="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
-          <div class="relative z-10 space-y-6">
-            <div class="relative inline-block">
-              <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
-              <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform rotate-2" />
-            </div>
-            <h2 class="text-2xl md:text-3xl font-bold">Bergabung Bersama Kami</h2>
-            <p class="text-white/80 text-xs md:text-sm leading-relaxed max-w-xs mx-auto">
-              Daftar dan dapatkan akses ke ribuan koleksi buku tanpa batas!
-            </p>
-          </div>
-        </div>
-
-        <!-- Floating Button Back (Register -> Login) -->
-        <button onclick="slideToLogin()" id="btn-prev" aria-label="Ke Login" 
-          class="hidden md:flex absolute left-[50%] -translate-x-1/2 top-1/2 -translate-y-1/2 z-30
-                 w-12 h-12 rounded-full bg-white text-primary
-                 items-center justify-center
-                 shadow-xl border-4 border-secondary/20 hover:scale-110 transition-all active:scale-95">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
       </div>
 
     </div>
+
+    <!-- HERO OVERLAY (Only Desktop) -->
+    <div id="hero-overlay" class="hidden md:flex absolute top-0 right-0 w-1/2 h-full bg-primary z-20 flex-col items-center justify-center text-center text-white overflow-hidden">
+      <!-- Ornamen Blur -->
+      <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+
+      <!-- Hero Content Login (Shown when Hero is on the right) -->
+      <div id="hero-login-content" class="hero-content relative z-10 space-y-6 p-12">
+        <div class="relative inline-block">
+          <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
+          <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform -rotate-2" />
+        </div>
+        <h2 class="text-3xl font-bold">Selamat Datang Kembali</h2>
+        <p class="text-white/80 text-sm leading-relaxed max-w-xs mx-auto">
+          Libooks adalah platform perpustakaan online terbaik, dengan ribuan koleksi buku yang siap menemani waktu luangmu.
+        </p>
+      </div>
+
+      <!-- Hero Content Register (Shown when Hero is on the left) -->
+      <div id="hero-register-content" class="hero-content hero-hidden absolute inset-0 flex flex-col items-center justify-center z-10 space-y-6 p-12">
+        <div class="relative inline-block">
+          <div class="absolute inset-0 bg-white/20 rounded-3xl blur-2xl"></div>
+          <img src="../hero.png" alt="LiBooks Hero" class="relative max-w-[240px] rounded-3xl shadow-2xl transform rotate-2" />
+        </div>
+        <h2 class="text-3xl font-bold">Bergabung Bersama Kami</h2>
+        <p class="text-white/80 text-sm leading-relaxed max-w-xs mx-auto">
+          Daftar dan dapatkan akses ke ribuan koleksi buku tanpa batas!
+        </p>
+      </div>
+
+      <!-- Floating Slide Button (Toggles everything) -->
+      <button id="slide-trigger" onclick="toggleSlide()" 
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-30
+                     w-12 h-12 rounded-full bg-white text-primary
+                     flex items-center justify-center
+                     shadow-xl border-4 border-secondary/20 hover:scale-110 transition-all active:scale-95 group">
+        <svg id="trigger-icon" class="w-6 h-6 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+    </div>
+
   </div>
 
   <script>
-    // ===== ANIMASI SLIDE =====
-    function slideToRegister() {
-      const track = document.getElementById('auth-track');
-      track.style.transform = 'translateX(-50%)';
-      window.location.hash = 'register';
-    }
+    let isRegister = false;
 
-    function slideToLogin() {
-      const track = document.getElementById('auth-track');
-      track.style.transform = 'translateX(0)';
-      window.location.hash = 'login';
-    }
-
-    // Handle Hash on Load
+    // Handle initial state via hash
     window.addEventListener('DOMContentLoaded', () => {
       if (window.location.hash === '#register') {
-        slideToRegister();
+        toggleSlide();
       }
     });
 
-    // ===== TOGGLE PASSWORD =====
+    function toggleSlide() {
+      if (window.innerWidth < 768) {
+        toggleMobileSlide();
+        return;
+      }
+
+      isRegister = !isRegister;
+      const hero = document.getElementById('hero-overlay');
+      const trigger = document.getElementById('slide-trigger');
+      const triggerIcon = document.getElementById('trigger-icon');
+      const loginContent = document.getElementById('hero-login-content');
+      const registerContent = document.getElementById('hero-register-content');
+
+      if (isRegister) {
+        // Move Hero to LEFT
+        hero.style.transform = 'translateX(-100%)';
+        // Move trigger button to the RIGHT side of the hero
+        trigger.style.left = '100%';
+        // Flip icon
+        triggerIcon.style.transform = 'rotate(180deg)';
+        
+        // Change Hero Content
+        loginContent.classList.add('hero-hidden');
+        setTimeout(() => {
+          registerContent.classList.remove('hero-hidden');
+        }, 200);
+
+        window.location.hash = 'register';
+      } else {
+        // Move Hero back to RIGHT
+        hero.style.transform = 'translateX(0)';
+        // Move trigger button back to the LEFT side of the hero
+        trigger.style.left = '0';
+        // Flip icon back
+        triggerIcon.style.transform = 'rotate(0deg)';
+
+        // Change Hero Content back
+        registerContent.classList.add('hero-hidden');
+        setTimeout(() => {
+          loginContent.classList.remove('hero-hidden');
+        }, 200);
+
+        window.location.hash = 'login';
+      }
+    }
+
+    // Simple mobile toggle
+    function toggleMobileSlide() {
+      const login = document.getElementById('login-panel');
+      const register = document.getElementById('register-panel');
+      
+      if (login.classList.contains('form-hidden')) {
+        login.classList.remove('form-hidden');
+        register.classList.add('form-hidden');
+        window.location.hash = 'login';
+      } else {
+        login.classList.add('form-hidden');
+        register.classList.remove('form-hidden');
+        window.location.hash = 'register';
+      }
+    }
+
     function togglePassword(inputId, btn) {
       const input = document.getElementById(inputId);
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
-
-      // Update Icon
-      if (isPassword) {
-        btn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-          </svg>
-        `;
-      } else {
-        btn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        `;
-      }
+      btn.classList.toggle('text-primary');
     }
 
-    // ===== LOGIN HANDLER =====
     function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-
-      // Default: admin@libooks.com / admin123
       if (email === 'admin@libooks.com' && password === 'admin123') {
         alert('Login berhasil! Selamat datang 👋');
         window.location.href = '../index.html';
@@ -342,25 +329,10 @@
       }
     }
 
-    // ===== REGISTER HANDLER =====
     function handleRegister(e) {
       e.preventDefault();
-      const name = document.getElementById('reg-name').value;
-      const email = document.getElementById('reg-email').value;
-      const password = document.getElementById('reg-password').value;
-      const confirm = document.getElementById('reg-confirm').value;
-
-      if (password !== confirm) {
-        alert('Password dan konfirmasi tidak cocok!');
-        return;
-      }
-
-      // Default logic: User LiBooks / user@libooks.com / user123
       alert('Registrasi berhasil! Silakan login 🎉');
-      slideToLogin();
-      
-      // Pre-fill login for convenience
-      document.getElementById('login-email').value = email;
+      toggleSlide();
     }
   </script>
 </body>
