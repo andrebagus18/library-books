@@ -136,6 +136,29 @@
       flex-direction: column;
       gap: 30px;
     }
+
+    /* Slide Animation */
+    #carousel-track {
+      display: flex;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+
+    .carousel-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      min-height: 500px;
+      display: flex;
+      align-items: center;
+    }
+
+    .carousel-image {
+      width: 100%;
+      max-width: 320px;
+      height: 450px;
+      object-fit: cover;
+      border-radius: 30px;
+    }
   </style>
 </head>
 
@@ -329,28 +352,31 @@
         </p>
       </div>
 
-      <div class="relative px-10 md:px-16">
-        <!-- Tombol PREV — kiri tengah -->
-        <button onclick="prevSlide()" id="btn-prev" aria-label="Sebelumnya" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10
-                   w-12 h-12 rounded-full bg-primary text-white
-                   flex items-center justify-center
-                   shadow-lg hover:bg-amber-700 transition-all active:scale-95">
+      <div class="relative">
+        <!-- Viewport -->
+        <div class="overflow-hidden rounded-[40px] shadow-2xl bg-white border border-secondary/20">
+          <div id="carousel-track">
+            <!-- Slides will be injected here -->
+          </div>
+        </div>
+
+        <!-- Tombol PREV -->
+        <button onclick="prevSlide()" id="btn-prev" aria-label="Sebelumnya" 
+          class="absolute -left-6 md:-left-10 top-1/2 -translate-y-1/2 z-20
+                 w-12 h-12 rounded-full bg-primary text-white
+                 flex items-center justify-center
+                 shadow-lg hover:bg-amber-700 transition-all active:scale-95">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
-        <!-- Konten Carousel -->
-        <div id="carousel-content"
-          class="bg-white rounded-[40px] p-8 md:p-12 shadow-2xl border border-secondary/20 transition-all duration-500">
-          <!-- Slide content will be injected here -->
-        </div>
-
-        <!-- Tombol NEXT — kanan tengah -->
-        <button onclick="nextSlide()" id="btn-next" aria-label="Berikutnya" class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10
-                   w-12 h-12 rounded-full bg-primary text-white
-                   flex items-center justify-center
-                   shadow-lg hover:bg-amber-700 transition-all active:scale-95">
+        <!-- Tombol NEXT -->
+        <button onclick="nextSlide()" id="btn-next" aria-label="Berikutnya" 
+          class="absolute -right-6 md:-right-10 top-1/2 -translate-y-1/2 z-20
+                 w-12 h-12 rounded-full bg-primary text-white
+                 flex items-center justify-center
+                 shadow-lg hover:bg-amber-700 transition-all active:scale-95">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
@@ -1041,86 +1067,94 @@
     let currentSlide = 0;
 
     function renderCarousel() {
-      const content = document.getElementById("carousel-content");
-      const book = carouselBooks[currentSlide];
-      book.isCarousel = true;
-      const carouselImage = localImages[currentSlide % localImages.length];
-      const sinopsisTampil = truncateWords(book.deskripsi, getSynopsisLimit());
-
-      content.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center text-center lg:text-left">
-                    <!-- Left: Cover -->
-                    <div class="lg:col-span-5 flex justify-center">
-                        <div class="relative group">
-                            <div class="absolute inset-0 bg-primary/20 rounded-[30px] blur-2xl group-hover:bg-primary/30 transition-all"></div>
-                            <img src="${carouselImage}" alt="${book.judul}" 
-                                 onerror="this.onerror=null; this.src='images/foto1.jpeg'"
-                                 class="relative w-full max-w-[320px] h-auto rounded-[30px] shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
-                        </div>
-                    </div>
-                    
-                    <!-- Right: Info -->
-                    <div class="lg:col-span-7 carousel-info">
-                        <div class="space-y-3">
-                            <span class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest">${book.kategori}</span>
-                            <h2 class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">${book.judul}</h2>
-                            <p class="text-xl font-medium text-primary/80 italic">${book.penulis}</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold text-slate-500 border-y border-secondary/30 py-3">
-                            <div class="space-y-1">
-                                <span class="block text-slate-400 font-normal">Penerbit</span>
-                                ${book.penerbit}
-                            </div>
-                            <div class="space-y-1">
-                                <span class="block text-slate-400 font-normal">Tahun</span>
-                                ${book.tahun}
-                            </div>
-                            <div class="space-y-1">
-                                <span class="block text-slate-400 font-normal">Stok</span>
-                                ${book.stok}
-                            </div>
-                            <div class="space-y-1">
-                                <span class="block text-slate-400 font-normal">Status</span>
-                                <span class="${book.stok > 0 ? "text-green-500" : "text-red-500"}">${book.stok > 0 ? "Tersedia" : "Habis"}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-slate-700">Sinopsis</h4>
-                            <p class="text-slate-500 leading-relaxed text-justify">
-                                ${sinopsisTampil}
-                            </p>
-                            <div class="pt-2">
-                                <button onclick='openModal(${JSON.stringify(book).replace(/'/g, "\\'")})' class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
-                                    Lihat Detail
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+      const track = document.getElementById("carousel-track");
+      track.innerHTML = carouselBooks.map((book, index) => {
+        const carouselImage = localImages[index % localImages.length];
+        const sinopsisTampil = truncateWords(book.deskripsi, getSynopsisLimit());
+        book.isCarousel = true; // Mark for modal logic
+        
+        return `
+          <div class="carousel-slide p-8 md:p-12">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center text-center lg:text-left">
+              <!-- Left: Cover -->
+              <div class="lg:col-span-5 flex justify-center">
+                <div class="relative group">
+                  <div class="absolute inset-0 bg-primary/20 rounded-[30px] blur-2xl group-hover:bg-primary/30 transition-all"></div>
+                  <img src="${carouselImage}" alt="${book.judul}" 
+                       onerror="this.onerror=null; this.src='images/foto1.jpeg'"
+                       class="relative carousel-image shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                 </div>
-            `;
+              </div>
+              
+              <!-- Right: Info -->
+              <div class="lg:col-span-7 carousel-info">
+                <div class="space-y-3">
+                  <span class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest">${book.kategori}</span>
+                  <h2 class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">${book.judul}</h2>
+                  <p class="text-xl font-medium text-primary/80 italic">${book.penulis}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold text-slate-500 border-y border-secondary/30 py-3">
+                  <div class="space-y-1">
+                    <span class="block text-slate-400 font-normal">Penerbit</span>
+                    ${book.penerbit}
+                  </div>
+                  <div class="space-y-1">
+                    <span class="block text-slate-400 font-normal">Tahun</span>
+                    ${book.tahun}
+                  </div>
+                  <div class="space-y-1">
+                    <span class="block text-slate-400 font-normal">Stok</span>
+                    ${book.stok}
+                  </div>
+                  <div class="space-y-1">
+                    <span class="block text-slate-400 font-normal">Status</span>
+                    <span class="${book.stok > 0 ? "text-green-500" : "text-red-500"}">${book.stok > 0 ? "Tersedia" : "Habis"}</span>
+                  </div>
+                </div>
+                
+                <div class="space-y-3">
+                  <h4 class="font-bold text-slate-700">Sinopsis</h4>
+                  <p class="text-slate-500 leading-relaxed text-justify h-[100px] overflow-hidden">
+                    ${sinopsisTampil}
+                  </p>
+                  <div class="pt-2">
+                    <button onclick='openCarouselModal(${index})' class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
+                      Lihat Detail
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      updateCarouselPosition();
     }
 
-    function changeSlide(direction) {
-      const content = document.getElementById('carousel-content');
-      content.classList.add('fade-out');
-      setTimeout(() => {
-        if (direction === 'next') {
-          currentSlide = (currentSlide + 1) % carouselBooks.length;
-        } else {
-          currentSlide = (currentSlide - 1 + carouselBooks.length) % carouselBooks.length;
-        }
-        renderCarousel();
-        content.classList.remove('fade-out');
-      }, 350);
+    function openCarouselModal(index) {
+      const book = carouselBooks[index];
+      book.isCarousel = true;
+      openModal(book);
     }
 
-    function nextSlide() { changeSlide('next'); }
-    function prevSlide() { changeSlide('prev'); }
+    function updateCarouselPosition() {
+      const track = document.getElementById("carousel-track");
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % carouselBooks.length;
+      updateCarouselPosition();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + carouselBooks.length) % carouselBooks.length;
+      updateCarouselPosition();
+    }
 
     function handleSubscribe() {
       const input = document.getElementById("subscribe-email");
