@@ -223,18 +223,18 @@
           Daftar dan dapatkan akses ke ribuan koleksi buku tanpa batas!
         </p>
       </div>
-
-      <!-- Floating Slide Button (Toggles everything) -->
-      <button id="slide-trigger" onclick="toggleSlide()" 
-              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-30
-                     w-12 h-12 rounded-full bg-white text-primary
-                     flex items-center justify-center
-                     shadow-xl border-4 border-secondary/20 hover:scale-110 transition-all active:scale-95 group">
-        <svg id="trigger-icon" class="w-6 h-6 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
     </div>
+
+    <!-- Floating Slide Button (Fixed in Center) -->
+    <button id="slide-trigger" onclick="toggleSlide()" 
+            class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40
+                   w-14 h-14 rounded-full bg-white text-primary
+                   items-center justify-center
+                   shadow-2xl border-4 border-secondary/30 hover:scale-110 transition-all active:scale-95 group">
+      <svg id="trigger-icon" class="w-8 h-8 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
 
   </div>
 
@@ -256,7 +256,6 @@
 
       isRegister = !isRegister;
       const hero = document.getElementById('hero-overlay');
-      const trigger = document.getElementById('slide-trigger');
       const triggerIcon = document.getElementById('trigger-icon');
       const loginContent = document.getElementById('hero-login-content');
       const registerContent = document.getElementById('hero-register-content');
@@ -264,9 +263,7 @@
       if (isRegister) {
         // Move Hero to LEFT
         hero.style.transform = 'translateX(-100%)';
-        // Move trigger button to the RIGHT side of the hero
-        trigger.style.left = '100%';
-        // Flip icon
+        // Rotate icon
         triggerIcon.style.transform = 'rotate(180deg)';
         
         // Change Hero Content
@@ -279,9 +276,7 @@
       } else {
         // Move Hero back to RIGHT
         hero.style.transform = 'translateX(0)';
-        // Move trigger button back to the LEFT side of the hero
-        trigger.style.left = '0';
-        // Flip icon back
+        // Rotate icon back
         triggerIcon.style.transform = 'rotate(0deg)';
 
         // Change Hero Content back
