@@ -2,22 +2,17 @@ buatkan issue.md yang berisi perencanaaan untuk nanti di implementasikan oleh ju
 
 isi dari planning nya adalah:
 
-- buat modal untuk detail buku untuk tombol detail di halaman katalog, dan modal untuk detail di halaman terbaru
-
-*Halaman Carousel:
-- hilangkan ini (d="M9 5l7 7-7 7" >)
-- buat judul dan isinya rata tengah
-- ganti gambarnya randoom juga di file "images"
-- sinopsis pada dekstop berikan 300 kata saja., 200 kata tablet, 100 mobile, sisanya bisa kasih titik-titik saja.
-- pergeseran gambar 1 ke gambar lainnya, berikan pergerakan yang smooth, jangan kasar gitu,
-- tombol prev dan next terlalu mepet jendela samping, berikan margin
-- jarak judul , keterangan , sinopsis dan tombol terlalu jauh rapatkan sedikit 30px
-
-
-*Halaman dibawah carousel:
--  judul "Mari Terhubung!" itu letakkan diluar container coklat, 
-
-*cek responsive pada mobile , bagian kanan ada yang keluar
+* Login Page:
+- Buat halaman login dan register, tapi saya mau tampilan nya tidak seperti halaman login biasa, buat sekeren mungkin, tanpa merubah warna utama website ya
+- buat satu halaman saja, dan buat tampilan login dan register berada di halaman itu
+- login default nya adalah email : [EMAIL_ADDRESS] dengan password : [PASSWORD]
+- register default nya adalah nama: [NAMA_USER] email : [EMAIL_ADDRESS] dengan password : [PASSWORD] 
+- buat kedua nya memiliki login dengan google, lupa password, tambahkan icon mata pada password untuk melihat password
+- pada login: buat sebelah kiri page login dan kanan gambar hero image yang ada di homepage saat ini(background cokelat serperti warna yang sudah ada), kasih judul "Selamat Datang Di LiBooks" dan "Libooks adalah platform perpustakaan online terbaik, dengan ribuan koleksi buku yang siap menemani waktu luangmu", ditengahnya ada tombol next untuk menuju ke halaman register
+- pada register: buat sebelah kanan page register dan kiri gambar hero image yang ada di homepage saat ini(background cokelat serperti warna yang sudah ada), kasih judul "Selamat Datang Di LiBooks" dan "daftar dan dapatkan akses ke ribuan koleksi buku" ditengahnya ada tombol back untuk menuju ke halaman login
+- lakukan perpindahan dengan animasi slide yang smooth dan bagus.
+- jangan lupakan responsive pada mobile.
+- pada mobile buat page logi sendiri tanpa gambar begitupun register
 
 jelaskan tahapan-tahapan yang harus dilakukan untuk mengimplementasikan fitur ini, anggap nanti yang mengimplementasikan adalah junior programmer atau ai model yang lebih murah.
 
