@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" style="scroll-behavior: smooth;">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -130,17 +130,35 @@
         <!-- Middle: Navigation -->
         <div class="hidden md:flex items-center space-x-8">
           <a
-            href="#"
+            href="#beranda"
             class="nav-link font-medium hover:text-primary transition-colors"
             >Beranda</a
           >
+          <div class="relative group" id="nav-kategori">
+            <button
+              class="nav-link font-medium hover:text-primary transition-colors flex items-center gap-1"
+              onclick="toggleDropdown()"
+              id="dropdown-btn"
+            >
+              Kategori
+              <svg class="w-4 h-4 transition-transform duration-200" id="dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div
+              id="dropdown-menu"
+              class="hidden absolute top-full left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-secondary/20 py-2 z-50"
+            >
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📚 Semua Buku</a>
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📖 Fiksi</a>
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📝 Non-Fiksi</a>
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">🧸 Anak-Anak</a>
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">🎓 Remaja</a>
+              <a href="#katalog" onclick="closeDropdown()" class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">👔 Dewasa</a>
+            </div>
+          </div>
           <a
-            href="#"
-            class="nav-link font-medium hover:text-primary transition-colors"
-            >Kategory</a
-          >
-          <a
-            href="#"
+            href="#carousel"
             class="nav-link font-medium hover:text-primary transition-colors"
             >Terbaru</a
           >
@@ -184,6 +202,7 @@
 
     <!-- Hero Section -->
     <section
+      id="beranda"
       class="relative min-h-screen flex items-center pt-24 hero-gradient"
     >
       <div
@@ -372,43 +391,14 @@
     <!-- Carousel Section -->
     <section id="carousel" class="py-24 bg-accent/30">
       <div class="container mx-auto px-6 md:px-[70px]">
-        <div class="flex items-center justify-between mb-12">
+        <div class="space-y-2 mb-12">
           <h2 class="text-3xl md:text-4xl font-bold text-primary">
-            Pilihan Editor
+            Terbaru
           </h2>
-          <div class="flex space-x-3">
-            <button
-              onclick="prevSlide()"
-              class="w-12 h-12 rounded-full border-2 border-primary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                ></path>
-              </svg>
-            </button>
-            <button
-              onclick="nextSlide()"
-              class="w-12 h-12 rounded-full border-2 border-primary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+          <p class="text-slate-500 text-sm md:text-base">
+            Koleksi buku pilihan yang baru saja tiba di perpustakaan kami. Jangan sampai ketinggalan!
+          </p>
+        </div>
                   d="M9 5l7 7-7 7"
                 ></path>
               </svg>
@@ -416,11 +406,44 @@
           </div>
         </div>
 
-        <div
-          id="carousel-content"
-          class="bg-white rounded-[40px] p-8 md:p-12 shadow-2xl border border-secondary/20 transition-all duration-500"
-        >
-          <!-- Slide content will be injected here -->
+        <div class="relative px-6 md:px-10">
+          <!-- Tombol PREV — kiri tengah -->
+          <button
+            onclick="prevSlide()"
+            id="btn-prev"
+            aria-label="Sebelumnya"
+            class="absolute left-0 top-1/2 -translate-y-1/2 z-10
+                   w-12 h-12 rounded-full bg-primary text-white
+                   flex items-center justify-center
+                   shadow-lg hover:bg-amber-700 transition-all active:scale-95"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+
+          <!-- Konten Carousel -->
+          <div
+            id="carousel-content"
+            class="bg-white rounded-[40px] p-8 md:p-12 shadow-2xl border border-secondary/20 transition-all duration-500"
+          >
+            <!-- Slide content will be injected here -->
+          </div>
+
+          <!-- Tombol NEXT — kanan tengah -->
+          <button
+            onclick="nextSlide()"
+            id="btn-next"
+            aria-label="Berikutnya"
+            class="absolute right-0 top-1/2 -translate-y-1/2 z-10
+                   w-12 h-12 rounded-full bg-primary text-white
+                   flex items-center justify-center
+                   shadow-lg hover:bg-amber-700 transition-all active:scale-95"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
         </div>
       </div>
     </section>
@@ -440,7 +463,7 @@
           ></div>
 
           <div class="relative z-10 space-y-4">
-            <h2 class="text-4xl font-bold">Dapatkan Info Buku Terbaru</h2>
+            <h2 class="text-4xl font-bold">Mari Terhubung!</h2>
             <p class="text-primary-foreground/80 max-w-xl mx-auto opacity-80">
               Berlangganan newsletter kami untuk mendapatkan rekomendasi buku
               terbaik dan promo menarik setiap minggunya.
@@ -504,6 +527,61 @@
     </footer>
 
     <script>
+      // ===== DROPDOWN KATEGORI =====
+      function toggleDropdown() {
+        const menu = document.getElementById('dropdown-menu');
+        const arrow = document.getElementById('dropdown-arrow');
+        menu.classList.toggle('hidden');
+        arrow.classList.toggle('rotate-180');
+      }
+
+      function closeDropdown() {
+        const menu = document.getElementById('dropdown-menu');
+        const arrow = document.getElementById('dropdown-arrow');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+      }
+
+      // Kalau user klik di luar dropdown, tutup otomatis
+      document.addEventListener('click', function(e) {
+        const nav = document.getElementById('nav-kategori');
+        if (nav && !nav.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+
+      // Daftar gambar lokal dari folder images/
+      const localImages = [
+        'images/foto1.jpeg',
+        'images/foto2.jpeg',
+        'images/foto3.jpeg',
+        'images/foto4.jpeg',
+        'images/foto5.jpeg',
+        'images/foto6.jpeg',
+        'images/foto7.jpeg',
+        'images/foto8.jpeg',
+        'images/foto9.jpeg',
+        'images/foto10.jpeg',
+        'images/foto11.jpeg',
+        'images/foto12.jpeg',
+        'images/foto13.jpeg',
+        'images/foto14.jpeg',
+        'images/foto15.jpeg',
+      ];
+
+      // Fungsi acak array (Fisher-Yates shuffle)
+      function shuffleArray(arr) {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
+      // Buat urutan gambar acak
+      const shuffledImages = shuffleArray(localImages);
+
       // Dummy Data: 23 Books (Added 5 new books & changed 'tersedia' to 'stok')
       const books = [
         {
@@ -777,14 +855,15 @@
         const end = start + booksPerPage;
         const paginatedBooks = books.slice(start, end);
 
-        paginatedBooks.forEach((book) => {
+        paginatedBooks.forEach((book, index) => {
           const card = document.createElement("div");
           const isAvailable = book.stok > 0;
+          const bookImage = shuffledImages[(start + index) % localImages.length];
           card.className = `group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 ${!isAvailable ? "opacity-70" : ""}`;
 
           card.innerHTML = `
                     <div class="relative h-64 overflow-hidden">
-                        <img src="${book.gambar}" alt="${book.judul}" 
+                        <img src="${bookImage}" alt="${book.judul}" 
                              onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543004218-ee141104838e?q=80&w=400&h=600&auto=format&fit=crop'"
                              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         <div class="absolute top-4 right-4">
@@ -1047,6 +1126,14 @@
                             <p class="text-slate-500 leading-relaxed text-justify">
                                 ${book.deskripsi}
                             </p>
+                            <div class="pt-2">
+                                <a href="#" class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
+                                    Lihat Detail
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                    </svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
