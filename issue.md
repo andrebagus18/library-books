@@ -1,110 +1,103 @@
-# 🔐 Issue: Halaman Member Area — LiBooks
+# Panduan Implementasi Halaman Admin Dashboard (admin.html)
 
-## Deskripsi
-Buat halaman `member.html` di dalam folder `public` yang berisi layout **Sidebar** dan **Main Content** untuk Member Area. Halaman ini akan menjadi dashboard bagi user yang sudah login, menampilkan statistik, daftar buku, peminjaman, riwayat, hingga simulasi bayar denda.
+Halo Tim / AI! 👋 
 
-## Role
-Tugas ini fokus di frontend. Cukup buat 1 file HTML saja yaitu `member.html` di dalam folder `public`. File ini harus statis tanpa database dulu, cukup gunakan desain yang *clean*, Tailwind CSS v4 via CDN, dan sedikit Javascript untuk interaksi ganti halaman (tab).
+Kita ada tugas nih untuk membuat halaman dashboard admin statis (`admin.html`). Halaman ini akan ditaruh di dalam folder `public`. Untuk sekarang, **nggak perlu koneksi database dulu**, cukup pakai HTML, TailwindCSS v4, dan sedikit Vanilla JavaScript untuk interaksinya. 
 
----
+Fokus utama kita adalah bikin tampilannya rapi, *responsive* (enak dilihat di mobile, tablet, maupun desktop), dan *smooth* saat interaksi. Gunakan Flexbox dan Grid biar layout-nya mantap!
 
-## 🎨 Referensi Desain & Layout
-- **Tailwind CSS v4:** Gunakan Tailwind CSS versi terbaru via CDN.
-- **Responsif:** Harus rapi di Mobile, Tablet, dan Desktop. Gunakan CSS Grid dan Flexbox.
-- **Animasi:** Berikan animasi *smooth* (transisi lembut) saat *hover* elemen, tombol, dan saat ganti menu/konten (fade-in/slide).
-- **Tipografi:** Gunakan heading `h4` atau `h5` untuk judul di atas tabel (jangan terlalu besar).
+Berikut adalah rincian tugasnya yang bisa kamu ikuti tahap demi tahap:
 
-Struktur secara umum akan terbagi dua:
-1. **Sidebar (Kiri)**: Berisi Logo, Profil User, dan Menu Navigasi.
-2. **Main Content (Kanan)**: Berisi konten yang berubah-ubah tergantung menu sidebar yang diklik.
+## 1. Persiapan Struktur Dasar
+- Buat file `admin.html` di dalam folder `public`.
+- Pastikan file ini sudah me-load TailwindCSS v4 (sesuai setup project yang sudah ada).
+- Buat struktur layout utama menjadi 2 bagian besar: **Sidebar** (kiri) dan **Main Content** (kanan). 
+- Di layar mobile, sidebar ini bisa dibuat tersembunyi (*offcanvas* atau *drawer*) dan muncul kalau tombol hamburger diklik.
 
 ---
 
-## 📋 Tahapan Implementasi
-
-Berikut adalah panduan santai step-by-step untuk mengimplementasikannya:
-
-### Task 1: Setup Layout Utama (Skeleton)
-1. Buat file baru bernama `member.html` di dalam folder `public`.
-2. Masukkan struktur dasar HTML5 dan *embed* Tailwind CSS v4 melalui CDN.
-3. Buat pembagian layar (layouting) menggunakan Flexbox:
-   - Kiri: **Sidebar** (Misal lebar `w-64` di desktop).
-   - Kanan: **Main Content** (Sisanya / `flex-1`).
-4. **Responsivitas**: Di layar kecil (mobile/tablet), sidebar bisa disembunyikan dan dimunculkan lewat tombol *hamburger menu*, atau dibuat *off-canvas* / *bottom navigation* sesuaikan dengan yang paling rapi.
-
-### Task 2: Buat Komponen Sidebar
-Di area Sidebar, tambahkan elemen-elemen berikut dari atas ke bawah:
-1. **Logo**: Teks atau gambar "LiBooks" di pojok kiri atas.
-2. **User Profile**: Buat desain profil sederhana dengan icon (atau foto *dummy*) dan Nama User di bawahnya.
-3. **Menu Navigasi**: Buat daftar list menu:
-   - Dashboard
-   - Daftar Buku
-   - Pinjam Buku
-   - Riwayat Peminjaman
-   - Bayar Denda
-   - Logout
-   *(Berikan efek hover yang smooth pada tiap menu, misal background berubah warna tipis saat di-hover).*
-
-### Task 3: Siapkan Konten Dinamis di Main Area
-Di bagian Main Content, buat beberapa buah `<div>` (container) untuk masing-masing halaman. Nantinya hanya satu yang ditampilkan secara default (Dashboard), sedangkan yang lain disembunyikan menggunakan class `hidden`.
-
-#### 1. Konten Dashboard (Default)
-- Berikan judul "Dashboard"
-- Buat 4 kotak metrik (statistik pribadi) menggunakan CSS Grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
-- Isi 4 kotak tersebut adalah:
-  1. Total Semua Buku (Dipinjam & Dikembalikan)
-  2. Total Buku yang Sedang Dipinjam
-  3. Total Denda
-  4. Total Buku yang Berhasil Dikembalikan
-- Buat desain kotaknya rapi, tambahkan *shadow* dan sudut *rounded*.
-
-#### 2. Konten Daftar Buku
-- Munculkan saat user klik menu "Daftar Buku".
-- Judul: "Daftar Buku" (`h4` / `h5`).
-- Buat tabel statis berisi daftar semua buku yang sudah/sedang dipinjam.
-- Kolom tabel: `No`, `Judul Buku`, `Tanggal Peminjaman`, `Tanggal Pengembalian`, `Status`.
-- *(Status bisa diisi: Dipinjam, Dikembalikan, Telat. Kasih warna badge yang beda biar menarik).*
-
-#### 3. Konten Pinjam Buku
-- Munculkan saat user klik menu "Pinjam Buku".
-- Judul: "Pinjam Buku" (`h4` / `h5`).
-- Buat tabel daftar buku yang sedang dipinjam.
-- Kolom tabel: `No`, `Judul Buku`, `Tanggal Peminjaman`, `Tanggal Pengembalian`, `Status`, `Aksi`.
-- Di kolom **Aksi**, buat 2 tombol:
-  - Tombol **Kembalikan** (Warna biru / primary).
-  - Tombol **Bayar Denda** (Warna merah / danger).
-
-#### 4. Konten Riwayat Peminjaman
-- Munculkan saat user klik menu "Riwayat Peminjaman".
-- Judul: "Riwayat Peminjaman" (`h4` / `h5`).
-- Buat tabel riwayat peminjaman.
-- Kolom tabel: `No`, `Judul Buku`, `Tanggal Peminjaman`, `Tanggal Pengembalian`, `Status`, `Denda`.
-- *Rules*: Jika statusnya "Telat", akan muncul jumlah denda (Rp 10.000 / hari keterlambatan). Isi dengan data statis *dummy*.
-
-#### 5. Konten Bayar Denda
-- Munculkan saat user klik menu "Bayar Denda".
-- Judul: "Simulasi Pembayaran Denda" (`h4` / `h5`).
-- Buat tabel simulasi pembayaran.
-- Kolom tabel: `No`, `Judul Buku`, `Tanggal Dipinjam`, `Tanggal Pengembalian`, `Total Hari (Telat)`, `Total Denda`.
-- *Rules*: Denda Rp 10.000 per hari keterlambatan dan total dendanya diakumulasikan. Isi datanya dengan *hardcode* saja sebagai contoh (misal telat 2 hari = Rp 20.000).
-
-### Task 4: Tambahkan Javascript untuk Interaksi
-Biar berasa seperti aplikasi sungguhan, tambahkan sedikit script JS di bagian bawah file `<script>`:
-1. Tangkap semua event *klik* pada menu di sidebar.
-2. Saat sebuah menu diklik, hapus class `hidden` pada *container* konten yang sesuai, dan tambahkan class `hidden` ke *container* lainnya.
-3. Berikan *styling* aktif pada menu sidebar yang sedang dipilih (misal font jadi bold atau warna background lebih gelap).
-4. Tambahkan *smooth transition* (misalnya animasi *fade-in* saat perpindahan tabel/konten).
+## 2. Membuat Sidebar
+Buat sidebar yang posisinya statis di kiri (atau *drawer* di mobile). Isinya:
+1. **Logo**: Taruh di paling atas, kasih styling yang keren.
+2. **Profil Admin**: Di bawah logo, kasih icon profil (bisa pakai placeholder gambar/SVG) beserta nama admin di bawahnya.
+3. **Menu Navigasi**: Buat *list* menu berikut. Kasih efek *hover* yang *smooth* (misal: transisi background color):
+   - 📚 **Buku** (CRUD buku)
+   - 🏷️ **Kategori** (CRUD kategori)
+   - 👥 **Member** (Manajemen member)
+   - 🧑‍💻 **User** (Manajemen admin/member)
+   - 🔁 **Peminjaman** (Konfirmasi pengembalian)
+   - 💰 **Denda** (Konfirmasi pembayaran)
+   - 📊 **Laporan** (Cetak laporan peminjaman, denda, buku populer)
+   - ⚙️ **Pengaturan** (Atur besaran denda per hari)
+   - 🚪 **Logout**
 
 ---
 
-## ✅ Checklist Sebelum Selesai
-- [ ] File `public/member.html` sudah dibuat.
-- [ ] Layout terbagi 2: Sidebar dan Main Content dengan rapi.
-- [ ] Sidebar memiliki logo, profil user, dan daftar menu.
-- [ ] Dashboard memiliki 4 grid statistik yang responsif.
-- [ ] 4 Tabel (Daftar, Pinjam, Riwayat, Denda) sudah terbuat rapi.
-- [ ] Javascript bisa mengganti (toggle) konten di Main area sesuai klik di Sidebar.
-- [ ] Responsive di layar kecil (tabel bisa di *scroll horizontal*, layout aman).
-- [ ] Animasi hover dan perpindahan tab terasa mulus.
+## 3. Membuat Main Content & Interaksi JavaScript
+Area utama (kanan) akan menampilkan konten sesuai menu yang diklik.
+**Instruksi JS:** Buat fungsi JS sederhana. Saat menu di sidebar diklik, sembunyikan semua section konten, lalu tampilkan section yang sesuai dengan menu yang diklik. Tambahkan transisi/animasi *fade in* yang *smooth* saat perpindahan konten!
 
-Selamat mengoding! Fokus aja ke kerapian layout (Flex/Grid) dan fungsionalitas UI ganti-ganti menunya dulu. Data *dummy* bebas dikarang.
+### A. Dashboard Admin (Selalu Muncul di Atas / Default)
+- Judul: **Dashboard Admin**
+- Buat **4 Kotak Grid** untuk statistik (gunakan CSS Grid: 1 kolom di mobile, 2 di tablet, 4 di desktop):
+  1. Total semua buku (dipinjam dan dikembalikan)
+  2. Total buku yang sedang dipinjam
+  3. Total pendapatan denda
+  4. Total member
+
+*(Catatan: Konten B sampai I di bawah ini hanya muncul bergantian ketika menu di sidebar diklik)*
+
+### B. Halaman Buku (CRUD Buku)
+- Buat form (kartu) di bagian atas tabel untuk menambahkan buku baru. Isinya:
+  - Input: Judul Buku, Penerbit, Tahun Terbit, Stok
+  - Tombol **Simpan** warna biru *primary*
+- Di bawah form tersebut, bikin tabel manajemen buku dengan kolom: `No`, `Judul Buku`, `Penerbit`, `Tahun Terbit`, `Stok`, `Aksi`.
+- Di kolom `Aksi`, tambahkan icon/tombol **Edit** (pensil) dan **Hapus** (tempat sampah).
+- Di bagian bawah (atau sebagai struktur dasarnya), siapkan daftar baris (row) tabel buku yang sudah terdaftar beserta datanya secara dummy.
+
+### C. Halaman Kategori (CRUD Kategori)
+- Buat form (kartu) di bagian atas tabel untuk menambahkan kategori baru. Isinya:
+  - Input: Nama Kategori (dan opsi relasi Judul Buku bila perlu)
+  - Tombol **Simpan** warna biru *primary*
+- Di bawah form tersebut, bikin tabel kategori dengan kolom: `No`, `Judul Buku` (bila diperlukan relasi, atau cukup `Nama Kategori`), `Kategori`, `Aksi`.
+- Tombol **Edit** dan **Hapus** (pakai icon) di kolom `Aksi`.
+- Isi dengan struktur baris dummy tabel kategori.
+
+### D. Halaman Member
+- Bikin tabel member dengan kolom: `No`, `Nama`, `Email`, `Status` (Aktif/Nonaktif, bisa pakai *badge*), `Aksi`.
+- Tombol **Edit** dan **Hapus** di kolom `Aksi`.
+- Isi dengan struktur baris dummy tabel member.
+
+### E. Halaman User
+- Buat sebuah form untuk menambahkan user, isinya:
+  - Input: Nama, Email, Password, Konfirmasi Password
+  - Select: Role (Admin/Member), Status (Aktif/Nonaktif)
+- Di bawah form tersebut, buat tabel daftar user yang sudah terdaftar dengan kolom: `No`, `Nama`, `Email`, `Role` (admin/member), `Status` (aktif/nonaktif), `Aksi` (Edit/Hapus).
+
+### F. Halaman Peminjaman
+- Buat tabel peminjaman dengan kolom: `No`, `Nama Peminjam`, `Judul Buku`, `Tanggal Kembali`, `Aksi`.
+- Di kolom `Aksi`, buat tombol **Konfirmasi Pengembalian** menggunakan icon **Centang**.
+
+### G. Halaman Denda
+- Buat tabel denda dengan kolom: `No`, `Nama Peminjam`, `Judul Buku`, `Tanggal Kembali`, `Denda` (Rp), `Aksi`.
+- Di kolom `Aksi`, buat tombol **Konfirmasi Pembayaran** pakai icon **Centang**.
+
+### H. Halaman Laporan
+- Buat tabel laporan peminjaman/denda. Kolom: `No`, `Nama Peminjam`, `Judul Buku`, `Tanggal Kembali`, `Denda`, `Aksi`.
+- Di kolom `Aksi`, sediakan tombol **Hapus** (icon tempat sampah).
+
+### I. Halaman Pengaturan
+- Buat form tabel/kartu untuk pengaturan, isinya:
+  - Input: `Besaran Denda Per Hari`
+- Tambahkan tombol **Simpan** warna biru *primary*.
+
+---
+
+## 4. Ceklis Penilaian (Quality Control)
+Sebelum disubmit atau di-*deploy*, pastikan cek hal-hal ini ya:
+- [ ] **Styling & Layout**: Apakah Flexbox dan Grid sudah dipakai dengan benar sehingga tabel dan konten terlihat rapi?
+- [ ] **Responsiveness**: Coba kecilkan ukuran browser. Apakah di tampilan mobile tabelnya bisa di-*scroll* horizontal dan sidebar aman?
+- [ ] **Animasi**: Apakah efek *hover* di tombol dan menu terasa *smooth*? Perpindahan antar menu juga tidak kaku?
+- [ ] **Kerapian HTML**: Pastikan tidak ada tag yang belum tertutup dan class Tailwind ditulis dengan efisien (versi 4).
+
+Semangat ngerjainnya! Pelan-pelan aja, pahami tiap langkahnya, dan pastikan hasilnya sekeren mungkin! 🚀
