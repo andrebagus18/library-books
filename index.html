@@ -174,38 +174,9 @@
       <!-- Middle: Navigation -->
       <div class="hidden md:flex items-center space-x-8">
         <a href="#beranda" class="nav-link font-medium hover:text-primary transition-colors">Beranda</a>
-        <div class="relative group" id="nav-kategori">
-          <button class="nav-link font-medium hover:text-primary transition-colors flex items-center gap-1"
-            onclick="toggleDropdown()" id="dropdown-btn">
-            Kategori
-            <svg class="w-4 h-4 transition-transform duration-200" id="dropdown-arrow" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div id="dropdown-menu"
-            class="hidden absolute top-full left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-secondary/20 py-2 z-50">
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📚
-              Semua Buku</a>
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📖
-              Fiksi</a>
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">📝
-              Non-Fiksi</a>
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">🧸
-              Anak-Anak</a>
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">🎓
-              Remaja</a>
-            <a href="#katalog" onclick="closeDropdown()"
-              class="block px-4 py-2 text-sm text-slate-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-xl mx-1">👔
-              Dewasa</a>
-          </div>
-        </div>
+        <a href="#kategori" class="nav-link font-medium hover:text-primary transition-colors">Kategori</a>
         <a href="#carousel" class="nav-link font-medium hover:text-primary transition-colors">Terbaru</a>
+        <a href="#dashboard" class="nav-link font-medium hover:text-primary transition-colors">Dashboard</a>
       </div>
 
       <!-- Right: Auth -->
@@ -293,21 +264,49 @@
         <div class="absolute w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10"></div>
         <div class="relative w-full max-w-lg">
           <img src="hero.png" alt="LiBooks Hero"
-            class="w-full h-auto drop-shadow-2xl rounded-3xl transform -rotate-2 hover:rotate-0 transition-transform duration-500" />
-          <div class="absolute -top-10 -right-10 bg-white p-4 rounded-2xl shadow-xl floating-sticker"
-            style="animation-delay: 0s">
-            <span class="text-2xl">📚</span>
+            class="w-full h-auto drop-shadow-2xl rounded-3xl" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section id="kategori" class="py-16 bg-white">
+    <div class="container mx-auto px-6 md:px-[70px]">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <!-- Category 1 -->
+        <div class="group relative overflow-hidden rounded-2xl aspect-square shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+          <img src="images/foto1.jpeg" alt="Fiksi" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+            <span class="text-white font-bold">Fiksi</span>
           </div>
-          <div class="absolute -bottom-10 -left-10 bg-white p-4 rounded-2xl shadow-xl floating-sticker"
-            style="animation-delay: 2s">
-            <span class="text-2xl">✨</span>
+        </div>
+        <!-- Category 2 -->
+        <div class="group relative overflow-hidden rounded-2xl aspect-square shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+          <img src="images/foto2.jpeg" alt="Non-Fiksi" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+            <span class="text-white font-bold">Non-Fiksi</span>
           </div>
-          <div class="absolute top-1/2 -left-16 bg-white p-4 rounded-2xl shadow-xl floating-sticker hidden md:block"
-            style="animation-delay: 4s">
-            <div class="flex items-center space-x-2">
-              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Baru Rilis</span>
-            </div>
+        </div>
+        <!-- Category 3 -->
+        <div class="group relative overflow-hidden rounded-2xl aspect-square shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+          <img src="images/foto3.jpeg" alt="Sains" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+            <span class="text-white font-bold">Sains</span>
+          </div>
+        </div>
+        <!-- Category 4 -->
+        <div class="group relative overflow-hidden rounded-2xl aspect-square shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+          <img src="images/foto4.jpeg" alt="Teknologi" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+            <span class="text-white font-bold">Teknologi</span>
+          </div>
+        </div>
+        <!-- Category 5 -->
+        <div class="group relative overflow-hidden rounded-2xl aspect-square shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
+          <img src="images/foto5.jpeg" alt="Anak-Anak" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
+            <span class="text-white font-bold">Anak-Anak</span>
           </div>
         </div>
       </div>
