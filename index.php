@@ -8,6 +8,14 @@ if ($books) {
   $image = getImage($books['image_url']);
 }
 
+$carouselBooks = getCarouselBooks($pdo);
+$pagination = getPaginatedBooks();
+$books = $pagination['data'];
+$link = './public/login.html';
+if (isLogin()) {
+  $link = isAdmin() ? './public/admin.html' : './public/member.html';
+}
+
 ?>
 
 <!doctype html>
@@ -185,19 +193,26 @@ if ($books) {
 
       <!-- Middle: Navigation -->
       <div class="hidden md:flex items-center space-x-8">
-        <a href="#katalog" class="nav-link font-medium hover:text-primary transition-colors">Beranda</a>
+        <a href="#katalog" class="nav-link font-medium hover:text-primary transition-colors">Koleksi Buku</a>
         <a href="#kategori" class="nav-link font-medium hover:text-primary transition-colors">Kategori</a>
         <a href="#carousel" class="nav-link font-medium hover:text-primary transition-colors">Terbaru</a>
-        <a href="#dashboard" class="nav-link font-medium hover:text-primary transition-colors">Dashboard</a>
+        <a href="<?= $link ?>" class="nav-link font-medium hover:text-primary transition-colors">Dashboard</a>
       </div>
 
       <!-- Right: Auth -->
-      <div class="flex items-center space-x-4">
-        <a href="public/login.html" class="nav-link font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
-        <a href="public/login.html#register"
-          class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Sign
-          Up</a>
-      </div>
+      <?php if (isLogin()) : ?>
+        <div class="flex items-center space-x-4">
+          <a href="index.php"
+            class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Logout</a>
+        </div>
+      <?php else : ?>
+        <div class="flex items-center space-x-4">
+          <a href="public/login.html" class="nav-link font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
+          <a href="public/login.html#register"
+            class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Sign
+            Up</a>
+        </div>
+      <?php endif; ?>
 
       <!-- Mobile Menu Toggle -->
       <div class="md:hidden">
@@ -211,7 +226,7 @@ if ($books) {
   </nav>
 
   <!-- Hero Section -->
-  <section id="beranda" class="relative min-h-screen flex items-center pt-24 hero-gradient">
+  <section id="beranda" class="relative min-h-screen flex items-center hero-gradient">
     <div class="container mx-auto px-6 md:px-[70px] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
       <!-- Left Column: Content -->
       <div class="order-2 lg:order-1 space-y-8">
@@ -220,8 +235,8 @@ if ($books) {
             The LiBooks,
           </h1>
           <p class="text-lg md:text-xl text-slate-600 max-w-lg leading-relaxed">
-            Browse from the largest collection of books. Read stories from
-            anywhere, at anytime.
+            Jelajahi koleksi buku terbesar. Baca cerita dari
+            mana saja, kapan saja. Temukan buku favoritmu dan biarkan imajinasimu terbang tinggi bersama LiBooks.
           </p>
         </div>
 
@@ -237,7 +252,7 @@ if ($books) {
             <input type="text" placeholder="Cari judul atau penulis buku"
               class="w-full py-3 outline-none text-slate-700 bg-transparent" id="search-input" />
           </div>
-          <button
+          <button type="button" id="button-search"
             class="bg-primary text-white px-10 py-3 rounded-xl font-bold w-full sm:w-auto hover:bg-opacity-90 transition-all active:scale-95 shadow-md shadow-primary/30">
             Jelajah
           </button>
@@ -274,7 +289,7 @@ if ($books) {
       <!-- Right Column: Visual -->
       <div class="order-1 lg:order-2 relative flex justify-center items-center overflow-hidden py-12">
         <div class="absolute w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-        <div class="relative w-full max-w-lg">
+        <div class="relative w-full max-w-sm">
           <img src="hero.png" alt="LiBooks Hero"
             class="w-full h-auto drop-shadow-2xl rounded-3xl" />
         </div>
@@ -284,9 +299,9 @@ if ($books) {
 
   <!-- Categories Section -->
   <section id="kategori" class="py-16 bg-white">
-    <div class="container mx-auto px-6 md:px-[70px]">
+    <div class="container mx-auto px-6 pt-6 md:px-[70px]">
       <div class="text-center mb-10">
-        <h2 class="text-3xl font-bold text-primary">Kategori</h2>
+        <h2 class="text-4xl font-bold text-primary">Kategori</h2>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
         <!-- Category 1 -->
@@ -345,52 +360,96 @@ if ($books) {
       <!-- Book Grid -->
       <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         <!-- Books will be injected here -->
-         <?php foreach ($books as $book) :
-          $isAvailable = $book['stock'] > 0;
-          $image = getImage($book['image_url']);
+        <?php if (count($books) > 0) : ?>
+          <?php foreach ($books as $book) :
+            $isLogin = isLogin();
+            $canBorrow = $isLogin && $book['stock'] > 0;
+            $isAvailable = $book['stock'] > 0;
+            $image = getImage($book['image_url']);
           ?>
-         <div class="group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 <?= !$isAvailable ? "opacity-70" : ""?>">
-          <div class="relative h-64 overflow-hidden">
-                        <img src="<?= $image ?>" alt="<?= htmlspecialchars($book['title']) ?>"
-                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                        <div class="absolute top-4 right-4">
-                            <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider <?= $isAvailable ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600" ?>">
-                                <?= $isAvailable ? "Tersedia" : "Stok Habis" ?>
-                            </span>
-                        </div>
-                    </div>
+            <div class="group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 <?= !$isAvailable ? "opacity-70" : "" ?>">
+              <div class="relative h-64 overflow-hidden">
+                <img src="<?= $image ?>" alt="<?= htmlspecialchars($book['title']) ?>"
+                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                <div class="absolute top-4 right-4">
+                  <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider <?= $isAvailable ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600" ?>">
+                    <?= $isAvailable ? "Tersedia" : "Stok Habis" ?>
+                  </span>
+                </div>
+              </div>
               <div class="p-6 space-y-4">
-                        <div class="space-y-1">
-                            <h3 class="text-xl font-bold text-slate-800 line-clamp-1"><?= htmlspecialchars($book['title']) ?></h3>
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-primary"><?= htmlspecialchars($book['author']) ?></p>
-                                <span class="text-xs font-bold px-2 py-1 bg-secondary/30 rounded-lg text-slate-500">Stok: <?= $book.stok ?></span>
-                            </div>
-                        </div>
-                        <div class="flex items-center text-xs text-slate-400 space-x-3">
-                            <span><?= htmlspecialchars($book['publisher']) ?></span>
-                            <span>•</span>
-                            <span><?= $book.year ?></span>
-                        </div>
-                        <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-                            <?= htmlspecialchars($book['description'] ?? 'Tidak ada deskripsi.') ?>
-                        </p>
-                        <div class="grid grid-cols-2 gap-3 pt-2">
-                            <button <?= $!isAvailable ? "disabled" : "" ?> class="py-2.5 rounded-xl font-bold text-sm transition-all <?= $isAvailable ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>">
-                                <?= $isAvailable ? "Pinjam Buku" : "Stok Habis"?>
-                            </button>
-                            <button onclick='openModal(<?= json_encode($book) ?>)' class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
-                                Detail
-                            </button>
-                        </div>
-                    </div>
-             </div>
-             <?php endforeach ; ?>
+                <div class="space-y-1">
+                  <h3 class="text-xl font-bold text-slate-800 line-clamp-1"><?= htmlspecialchars($book['title']) ?></h3>
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-medium text-primary"><?= htmlspecialchars($book['author']) ?></p>
+                    <span class="text-xs font-bold px-2 py-1 bg-secondary/30 rounded-lg text-slate-500">Stok: <?= $book['stock'] ?></span>
+                  </div>
+                </div>
+                <div class="flex items-center text-xs text-slate-400 space-x-3">
+                  <span><?= htmlspecialchars($book['publisher']) ?></span>
+                  <span>•</span>
+                  <span><?= $book['year'] ?></span>
+                </div>
+                <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                  <?= htmlspecialchars($book['description'] ?? 'Tidak ada deskripsi.') ?>
+                </p>
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                  <button <?= !$canBorrow ? "disabled" : "" ?> type="button" class="py-2.5 rounded-xl font-bold text-sm transition-all <?= $canBorrow ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>">
+                    <?= !$isLogin
+                      ? "Login untuk Pinjam"
+                      : ($isAvailable ? "Pinjam Buku" : "Stok Habis")
+                    ?>
+                  </button>
+                  <button onclick='openModal(<?= json_encode($book) ?>)' class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
+                    Detail
+                  </button>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php else : ?>
+          <div class="col-span-full text-center py-20">
+
+            <h4 class="text-slate-500 text-lg font-medium">
+              Tidak ada buku yang ditemukan.
+            </h4>
+
+          </div>
+        <?php endif; ?>
       </div>
 
       <!-- Pagination -->
       <div id="pagination" class="flex justify-center items-center space-x-2 mt-16">
         <!-- Pagination buttons will be injected here -->
+        <!-- Prev Button -->
+        <?php
+        $firstPage = ($pagination['currentPage'] === 1);
+        $prevClass = $firstPage ? "bg-secondary/20 text-slate-300 cursor-not-allowed" : "bg-white text-slate-600 hover:text-primary border border-secondary/30 shadow-sm";
+        ?>
+        <button type="button" <?= $firstPage ? 'disabled' : '' ?> onclick="changePage(<?= $pagination['currentPage'] - 1 ?>)" class="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <?php for ($i = 1; $i <= $pagination['totalPage']; $i++) : ?>
+          <?php $isCurrent = ($i === $pagination['currentPage']);
+          $isPage = $isCurrent ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-white text-slate-400 hover:text-primary border border-secondary/30";
+          ?>
+          <button type="button" onclick="changePage(<?= $i ?>)" class="w-10 h-10 rounded-xl font-bold transition-all <?= $isPage ?>">
+            <?= $i ?>
+          </button>
+        <?php endfor; ?>
+
+        <!-- Next Button -->
+        <?php
+        $lastPage = ($pagination['currentPage']) >= $pagination['totalPage'];
+        $nextClass = $firstPage ? "bg-secondary/20 text-slate-300 cursor-not-allowed" : "bg-white text-slate-600 hover:text-primary border border-secondary/30 shadow-sm";
+        ?>
+        <button type="button" <?= $lastPage ? 'disabled' : '' ?> onclick="changePage(<?= $pagination['currentPage'] + 1 ?>)" class="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </section>
@@ -399,7 +458,7 @@ if ($books) {
   <section id="carousel" class="py-24 bg-accent/30 overflow-hidden">
     <div class="container mx-auto px-6 md:px-[70px]">
       <div class="text-center mb-8 space-y-2">
-        <h2 class="text-3xl md:text-4xl font-bold text-primary">
+        <h2 class="text-4xl md:text-4xl font-bold text-primary">
           Terbaru
         </h2>
         <p class="text-slate-500 text-sm md:text-base">
@@ -416,7 +475,7 @@ if ($books) {
         </div>
 
         <!-- Tombol PREV -->
-        <button onclick="prevSlide()" id="btn-prev" aria-label="Sebelumnya" 
+        <button onclick="prevSlide()" id="btn-prev" aria-label="Sebelumnya"
           class="absolute -left-6 md:-left-10 top-1/2 -translate-y-1/2 z-20
                  w-12 h-12 rounded-full bg-primary text-white
                  flex items-center justify-center
@@ -427,7 +486,7 @@ if ($books) {
         </button>
 
         <!-- Tombol NEXT -->
-        <button onclick="nextSlide()" id="btn-next" aria-label="Berikutnya" 
+        <button onclick="nextSlide()" id="btn-next" aria-label="Berikutnya"
           class="absolute -right-6 md:-right-10 top-1/2 -translate-y-1/2 z-20
                  w-12 h-12 rounded-full bg-primary text-white
                  flex items-center justify-center
@@ -514,29 +573,31 @@ if ($books) {
   </div>
 
   <script>
+    const carouselBooks = <?= json_encode($carouselBooks) ?>;
+
     // ===== MODAL DETAIL =====
-    function openModal(book) {
+    function openModal(carouselBooks) {
       const modal = document.getElementById('modal-detail');
       const body = document.getElementById('modal-body');
-      const bookImage = book.isCarousel ? localImages[carouselBooks.indexOf(book) % localImages.length] : shuffledImages[books.indexOf(book) % localImages.length];
+      const image = carouselBooks.image_url ? `images/${carouselBooks.image_url}` : 'images/foto1.jpeg';
 
       body.innerHTML = `
           <div class="flex flex-col sm:flex-row gap-6 items-start">
-            <img src="${bookImage}" alt="${book.judul}"
+            <img src="${image}" alt="${carouselBooks.title}"
                  onerror="this.onerror=null;this.src='images/foto1.jpeg'"
                  class="w-full sm:w-40 h-56 object-cover rounded-2xl shadow-lg flex-shrink-0">
             <div class="space-y-3 flex-1">
-              <h3 class="text-2xl font-bold text-slate-800">${book.judul}</h3>
-              <p class="text-primary font-semibold">${book.penulis}</p>
+              <h3 class="text-2xl font-bold text-slate-800">${carouselBooks.title}</h3>
+              <p class="text-primary font-semibold">${carouselBooks.author}</p>
               <div class="flex gap-4 text-sm text-slate-400">
-                <span>${book.penerbit}</span>
+                <span>${carouselBooks.publisher}</span>
                 <span>•</span>
-                <span>${book.tahun}</span>
+                <span>${carouselBooks.year}</span>
               </div>
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${book.stok > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
-                ${book.stok > 0 ? 'Tersedia — Stok: ' + book.stok : 'Stok Habis'}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${carouselBooks.stock > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                ${carouselBooks.stock > 0 ? 'Tersedia — Stok: ' + carouselBooks.stock : 'Stok Habis'}
               </span>
-              <p class="text-slate-500 leading-relaxed text-sm">${book.deskripsi}</p>
+              <p class="text-slate-500 leading-relaxed text-sm">${carouselBooks.description}</p>
             </div>
           </div>
         `;
@@ -552,10 +613,34 @@ if ($books) {
       document.body.style.overflow = 'auto';
     }
 
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
       const modal = document.getElementById('modal-detail');
       if (e.target === modal) closeModal();
     });
+
+    // ===== SEARCH =====
+    async function handleSearch() {
+      const keyword = document.getElementById('search-input').value.trim();
+      const response = await fetch(`?search=${keyword}`);
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newContent = doc.querySelector('#katalog');
+
+      document.querySelector('#katalog').innerHTML =
+        newContent.innerHTML;
+      history.pushState({}, '', `?search=${keyword}`);
+      document.getElementById("katalog")
+        .scrollIntoView({
+          behavior: "smooth"
+        });
+    }
+
+    // event enter dan klik
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleSearch();
+    });
+    document.getElementById('button-search').addEventListener('click', handleSearch);
 
     // Helper potong kata
     function truncateWords(text, maxWords) {
@@ -570,564 +655,31 @@ if ($books) {
       return 100;
     }
 
-    // ===== DROPDOWN KATEGORI =====
-    // function toggleDropdown() {
-    //   const menu = document.getElementById('dropdown-menu');
-    //   const arrow = document.getElementById('dropdown-arrow');
-    //   menu.classList.toggle('hidden');
-    //   arrow.classList.toggle('rotate-180');
-    // }
+    async function changePage(page) {
+      const response = await fetch(`?page=${page}`);
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newContent = doc.querySelector('#katalog');
 
-    // function closeDropdown() {
-    //   const menu = document.getElementById('dropdown-menu');
-    //   const arrow = document.getElementById('dropdown-arrow');
-    //   if (menu) menu.classList.add('hidden');
-    //   if (arrow) arrow.classList.remove('rotate-180');
-    // }
+      document.querySelector('#katalog').innerHTML =
+        newContent.innerHTML;
 
-    // Kalau user klik di luar dropdown, tutup otomatis
-    // document.addEventListener('click', function (e) {
-    //   const nav = document.getElementById('nav-kategori');
-    //   if (nav && !nav.contains(e.target)) {
-    //     closeDropdown();
-    //   }
-    // });
-
-    // Daftar gambar lokal dari folder images/
-    // const localImages = [
-    //   'images/foto1.jpeg',
-    //   'images/foto2.jpeg',
-    //   'images/foto3.jpeg',
-    //   'images/foto4.jpeg',
-    //   'images/foto5.jpeg',
-    //   'images/foto6.jpeg',
-    //   'images/foto7.jpeg',
-    //   'images/foto8.jpeg',
-    //   'images/foto9.jpeg',
-    //   'images/foto10.jpeg',
-    //   'images/foto11.jpeg',
-    //   'images/foto12.jpeg',
-    //   'images/foto13.jpeg',
-    //   'images/foto14.jpeg',
-    //   'images/foto15.jpeg',
-    // ];
-
-    // Fungsi acak array (Fisher-Yates shuffle)
-    // function shuffleArray(arr) {
-    //   const shuffled = [...arr];
-    //   for (let i = shuffled.length - 1; i > 0; i--) {
-    //     const j = Math.floor(Math.random() * (i + 1));
-    //     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    //   }
-    //   return shuffled;
-    // }
-
-    // Buat urutan gambar acak
-    // const shuffledImages = shuffleArray(localImages);
-
-    // Dummy Data: 23 Books (Added 5 new books & changed 'tersedia' to 'stok')
-    // const books = [
-    //   {
-    //     id: 1,
-    //     judul: "The Art of Programming",
-    //     penulis: "John Doe",
-    //     penerbit: "Tech Press",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Panduan lengkap untuk menguasai seni pemrograman modern.",
-    //     stok: 5,
-    //   },
-    //   {
-    //     id: 2,
-    //     judul: "Modern Web Design",
-    //     penulis: "Jane Smith",
-    //     penerbit: "Creative Minds",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Eksplorasi tren desain web terbaru untuk tahun 2022.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 3,
-    //     judul: "The Future of AI",
-    //     penulis: "Alan Turing",
-    //     penerbit: "Future Books",
-    //     tahun: 2023,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1532012197367-2d4d801e77f9?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Masa depan kecerdasan buatan dan dampaknya bagi manusia.",
-    //     stok: 3,
-    //   },
-    //   {
-    //     id: 4,
-    //     judul: "JavaScript Masterclass",
-    //     penulis: "Brendan Eich",
-    //     penerbit: "JS Guru",
-    //     tahun: 2020,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1516339901600-2e1a6298ed70?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Kuasai JavaScript dari dasar hingga tingkat lanjut.",
-    //     stok: 8,
-    //   },
-    //   {
-    //     id: 5,
-    //     judul: "UI/UX Essentials",
-    //     penulis: "Sarah Johnson",
-    //     penerbit: "Design Co",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1589998059171-988d887df646?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Prinsip-prinsip penting dalam desain UI dan UX.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 6,
-    //     judul: "The Digital Nomad",
-    //     penulis: "Chris Brown",
-    //     penerbit: "Traveler Ink",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Cara menjalani hidup sebagai nomad digital yang sukses.",
-    //     stok: 12,
-    //   },
-    //   {
-    //     id: 7,
-    //     judul: "Startup Secrets",
-    //     penulis: "Elon Musk",
-    //     penerbit: "Innovation Press",
-    //     tahun: 2023,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1525547718571-039947963ffb?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Rahasia di balik kesuksesan startup raksasa.",
-    //     stok: 4,
-    //   },
-    //   {
-    //     id: 8,
-    //     judul: "Productivity Hacks",
-    //     penulis: "Tim Ferriss",
-    //     penerbit: "Efficient Life",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1497493292307-31c376b6e479?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi:
-    //       "Tips praktis untuk meningkatkan produktivitas harian Anda.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 9,
-    //     judul: "Data Science 101",
-    //     penulis: "Andrew Ng",
-    //     penerbit: "Code Academic",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Langkah awal untuk memahami dunia data science.",
-    //     stok: 7,
-    //   },
-    //   {
-    //     id: 10,
-    //     judul: "Creative Writing",
-    //     penulis: "Ernest Hemingway",
-    //     penerbit: "Lit Books",
-    //     tahun: 2020,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Teknik menulis kreatif dari sang legenda sastra.",
-    //     stok: 2,
-    //   },
-    //   {
-    //     id: 11,
-    //     judul: "The Power of Habits",
-    //     penulis: "Charles Duhigg",
-    //     penerbit: "Mind Press",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1491843384427-142345037f7a?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Bagaimana kebiasaan terbentuk dan cara mengubahnya.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 12,
-    //     judul: "The Infinite Game",
-    //     penulis: "Simon Sinek",
-    //     penerbit: "Leadership Hub",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1513001900722-370f803f498d?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Strategi kepemimpinan dalam permainan yang tak berakhir.",
-    //     stok: 6,
-    //   },
-    //   {
-    //     id: 13,
-    //     judul: "Cyber Security Guide",
-    //     penulis: "Kevin Mitnick",
-    //     penerbit: "Secure Ink",
-    //     tahun: 2023,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Lindungi data Anda di dunia digital yang berbahaya.",
-    //     stok: 1,
-    //   },
-    //   {
-    //     id: 14,
-    //     judul: "Financial Freedom",
-    //     penulis: "Robert Kiyosaki",
-    //     penerbit: "Wealth Academy",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Cara cerdas mengelola keuangan untuk masa depan.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 15,
-    //     judul: "Healthy Living",
-    //     penulis: "Dr. Oz",
-    //     penerbit: "Wellness Pub",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Panduan gaya hidup sehat untuk tubuh yang bugar.",
-    //     stok: 9,
-    //   },
-    //   {
-    //     id: 16,
-    //     judul: "The Martian",
-    //     penulis: "Andy Weir",
-    //     penerbit: "Space Books",
-    //     tahun: 2020,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Kisah bertahan hidup seorang astronot di planet Mars.",
-    //     stok: 3,
-    //   },
-    //   {
-    //     id: 17,
-    //     judul: "Minimalist Lifestyle",
-    //     penulis: "Leo Babauta",
-    //     penerbit: "Zen Life",
-    //     tahun: 2021,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Temukan kebahagiaan dalam kesederhanaan.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 18,
-    //     judul: "Travel Photography",
-    //     penulis: "Steve McCurry",
-    //     penerbit: "Visual Arts",
-    //     tahun: 2022,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1452784444945-3f422708fe5e?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Abadikan momen perjalanan Anda dengan teknik pro.",
-    //     stok: 5,
-    //   },
-    //   // New 5 books
-    //   {
-    //     id: 19,
-    //     judul: "Deep Work",
-    //     penulis: "Cal Newport",
-    //     penerbit: "Focus Press",
-    //     tahun: 2016,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi:
-    //       "Aturan untuk sukses yang terfokus di dunia yang penuh gangguan.",
-    //     stok: 10,
-    //   },
-    //   {
-    //     id: 20,
-    //     judul: "Atomic Habits",
-    //     penulis: "James Clear",
-    //     penerbit: "Penguin",
-    //     tahun: 2018,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi:
-    //       "Cara mudah untuk membangun kebiasaan baik dan menghentikan kebiasaan buruk.",
-    //     stok: 15,
-    //   },
-    //   {
-    //     id: 21,
-    //     judul: "Sapiens",
-    //     penulis: "Yuval Noah Harari",
-    //     penerbit: "Vintage",
-    //     tahun: 2011,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1543004218-ee141104838e?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi:
-    //       "Sejarah singkat umat manusia dari zaman batu hingga sekarang.",
-    //     stok: 0,
-    //   },
-    //   {
-    //     id: 22,
-    //     judul: "The Alchemist",
-    //     penulis: "Paulo Coelho",
-    //     penerbit: "Harper",
-    //     tahun: 1988,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Kisah tentang mengejar impian dan mendengarkan hati.",
-    //     stok: 4,
-    //   },
-    //   {
-    //     id: 23,
-    //     judul: "Brave New World",
-    //     penulis: "Aldous Huxley",
-    //     penerbit: "Chatto",
-    //     tahun: 1932,
-    //     gambar:
-    //       "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=600&auto=format&fit=crop",
-    //     deskripsi: "Visi distopia tentang masa depan yang sangat teratur.",
-    //     stok: 2,
-    //   },
-    // ];
-
-    const booksPerPage = 6;
-    let currentPage = 1;
-
-    // function renderBooks(page) {
-    //   const grid = document.getElementById("book-grid");
-    //   grid.innerHTML = "";
-
-    //   const start = (page - 1) * booksPerPage;
-    //   const end = start + booksPerPage;
-    //   const paginatedBooks = books.slice(start, end);
-
-    //   paginatedBooks.forEach((book, index) => {
-    //     const card = document.createElement("div");
-    //     const isAvailable = book.stok > 0;
-    //     const bookImage = shuffledImages[(start + index) % localImages.length];
-    //     card.className = `group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 ${!isAvailable ? "opacity-70" : ""}`;
-
-    //     card.innerHTML = `
-    //                 <div class="relative h-64 overflow-hidden">
-    //                     <img src="" alt="${book.judul}" 
-    //                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543004218-ee141104838e?q=80&w=400&h=600&auto=format&fit=crop'"
-    //                          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-    //                     <div class="absolute top-4 right-4">
-    //                         <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${isAvailable ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}">
-    //                             ${isAvailable ? "Tersedia" : "Stok Habis"}
-    //                         </span>
-    //                     </div>
-    //                 </div>
-    //                 <div class="p-6 space-y-4">
-    //                     <div class="space-y-1">
-    //                         <h3 class="text-xl font-bold text-slate-800 line-clamp-1">${book.judul}</h3>
-    //                         <div class="flex items-center justify-between">
-    //                             <p class="text-sm font-medium text-primary">${book.penulis}</p>
-    //                             <span class="text-xs font-bold px-2 py-1 bg-secondary/30 rounded-lg text-slate-500">Stok: ${book.stok}</span>
-    //                         </div>
-    //                     </div>
-    //                     <div class="flex items-center text-xs text-slate-400 space-x-3">
-    //                         <span>${book.penerbit}</span>
-    //                         <span>•</span>
-    //                         <span>${book.tahun}</span>
-    //                     </div>
-    //                     <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-    //                         ${book.deskripsi}
-    //                     </p>
-    //                     <div class="grid grid-cols-2 gap-3 pt-2">
-    //                         <button ${!isAvailable ? "disabled" : ""} class="py-2.5 rounded-xl font-bold text-sm transition-all ${isAvailable ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60"}">
-    //                             ${isAvailable ? "Pinjam Buku" : "Stok Habis"}
-    //                         </button>
-    //                         <button onclick='openModal(${JSON.stringify(book).replace(/'/g, "\\'")})' class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
-    //                             Detail
-    //                         </button>
-    //                     </div>
-    //                 </div>
-    //             `;
-
-    //     card.style.cursor = "pointer";
-    //     card.onclick = (e) => {
-    //       if (e.target.tagName !== "BUTTON" && e.target.tagName !== "A") {
-    //         window.location.href = "#";
-    //       }
-    //     };
-
-    //     grid.appendChild(card);
-    //   });
-    // }
-
-    function renderPagination() {
-      const pagination = document.getElementById("pagination");
-      pagination.innerHTML = "";
-
-      const totalPages = Math.ceil(books.length / booksPerPage);
-
-      // Previous Button
-      const prevBtn = document.createElement("button");
-      prevBtn.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            `;
-      prevBtn.className = `w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${currentPage === 1 ? "bg-secondary/20 text-slate-300 cursor-not-allowed" : "bg-white text-slate-600 hover:text-primary border border-secondary/30 shadow-sm"}`;
-      prevBtn.disabled = currentPage === 1;
-      prevBtn.onclick = () => {
-        if (currentPage > 1) {
-          currentPage--;
-          updateView();
-        }
-      };
-      pagination.appendChild(prevBtn);
-
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.innerText = i;
-        btn.className = `w-10 h-10 rounded-xl font-bold transition-all ${currentPage === i ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-white text-slate-400 hover:text-primary border border-secondary/30"}`;
-
-        btn.onclick = () => {
-          currentPage = i;
-          updateView();
-        };
-
-        pagination.appendChild(btn);
-      }
-
-      // Next Button
-      const nextBtn = document.createElement("button");
-      nextBtn.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            `;
-      nextBtn.className = `w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${currentPage === totalPages ? "bg-secondary/20 text-slate-300 cursor-not-allowed" : "bg-white text-slate-600 hover:text-primary border border-secondary/30 shadow-sm"}`;
-      nextBtn.disabled = currentPage === totalPages;
-      nextBtn.onclick = () => {
-        if (currentPage < totalPages) {
-          currentPage++;
-          updateView();
-        }
-      };
-      pagination.appendChild(nextBtn);
+      history.pushState({}, '', `?page=${page}`);
+      document.getElementById("katalog")
+        .scrollIntoView({
+          behavior: "smooth"
+        });
     }
-
-    function updateView() {
-      renderBooks(currentPage);
-      renderPagination();
-      document
-        .getElementById("katalog")
-        .scrollIntoView({ behavior: "smooth" });
-    }
-
-    // Carousel Data: 8 Books
-    const carouselBooks = [
-      {
-        id: 101,
-        judul: "The Psychology of Money",
-        penulis: "Morgan Housel",
-        penerbit: "Harriman House",
-        tahun: 2020,
-        kategori: "Finansial",
-        stok: 12,
-        gambar:
-          "https://images.unsplash.com/photo-1592492159418-39f319320569?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Pelajaran abadi tentang kekayaan, ketamakan, dan kebahagiaan. Melalui 19 cerita pendek, Morgan Housel mengeksplorasi cara-cara aneh orang berpikir tentang uang dan mengajari Anda cara memahami salah satu topik terpenting dalam hidup dengan lebih baik. Memahami psikologi di balik keputusan finansial sangatlah krusial untuk kesuksesan jangka panjang. Buku ini tidak hanya berbicara tentang angka, tetapi tentang bagaimana perilaku manusia mempengaruhi masa depan finansial mereka secara drastis. Dengan gaya penulisan yang ringan namun mendalam, setiap bab memberikan wawasan baru yang menantang cara pandang konvensional kita terhadap investasi dan tabungan. Ini adalah bacaan wajib bagi siapa saja yang ingin memiliki hubungan yang lebih sehat dan bijaksana dengan uang mereka, terlepas dari berapa banyak yang mereka miliki saat ini.",
-      },
-      {
-        id: 102,
-        judul: "Man's Search for Meaning",
-        penulis: "Viktor Frankl",
-        penerbit: "Beacon Press",
-        tahun: 1946,
-        kategori: "Psikologi",
-        stok: 5,
-        gambar:
-          "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Memoar psikolog Viktor Frankl tentang pengalamannya di kamp konsentrasi Nazi dan metodenya dalam menemukan makna hidup. Frankl berargumen bahwa kita tidak dapat menghindari penderitaan tetapi kita dapat memilih cara mengatasinya, menemukan makna di dalamnya, dan melangkah maju dengan tujuan baru. Teori logoterapi yang ia kembangkan telah membantu jutaan orang menghadapi krisis eksistensial dan menemukan alasan untuk terus berjuang bahkan dalam kondisi yang paling tidak manusiawi sekalipun. Buku ini dibagi menjadi dua bagian: pengalaman pribadinya yang mengerikan dan penjelasan ilmiah tentang teorinya. Kekuatan dari buku ini terletak pada kemampuannya untuk menginspirasi pembaca untuk melihat melampaui keadaan mereka saat ini dan menyadari bahwa kebebasan terakhir manusia adalah kemampuan untuk memilih sikap mereka sendiri dalam situasi apa pun yang diberikan.",
-      },
-      {
-        id: 103,
-        judul: "Thinking, Fast and Slow",
-        penulis: "Daniel Kahneman",
-        penerbit: "Farrar",
-        tahun: 2011,
-        kategori: "Sains",
-        stok: 8,
-        gambar:
-          "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Penjelasan mendalam tentang dua sistem yang mendorong cara kita berpikir: Sistem 1 yang cepat, intuitif, dan emosional; serta Sistem 2 yang lebih lambat, lebih deliberatif, dan lebih logis. Kahneman mengeksplorasi bias kognitif dan bagaimana mereka mempengaruhi keputusan kita sehari-hari, mulai dari investasi hingga perencanaan liburan. Dengan menggabungkan psikologi kognitif dan ekonomi perilaku, penulis menunjukkan betapa seringnya intuisi kita menyesatkan dan bagaimana kita dapat belajar untuk berpikir lebih jernih. Buku ini merupakan hasil penelitian selama puluhan tahun yang memenangkan Hadiah Nobel, disajikan dengan contoh-contoh praktis yang mudah dipahami. Membaca buku ini akan mengubah cara Anda memandang dunia dan proses pengambilan keputusan Anda sendiri selamanya, memberikan alat yang diperlukan untuk menghindari jebakan mental yang umum.",
-      },
-      {
-        id: 104,
-        judul: "The Power of Now",
-        penulis: "Eckhart Tolle",
-        penerbit: "Namaste",
-        tahun: 1997,
-        kategori: "Spiritual",
-        stok: 10,
-        gambar:
-          "https://images.unsplash.com/photo-1532012197367-2d4d801e77f9?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Panduan untuk pencerahan spiritual melalui hidup di saat ini. Tolle mengajarkan pembaca bagaimana membebaskan diri dari pikiran yang gelisah dan ego yang merusak untuk mencapai ketenangan batin. Fokus utamanya adalah menyadari bahwa masa lalu dan masa depan hanyalah konstruksi pikiran, dan satu-satunya hal yang nyata adalah momen saat ini. Dengan gaya penulisan yang menenangkan, buku ini memberikan latihan praktis untuk mengamati pikiran tanpa menghakimi. Jutaan orang di seluruh dunia telah menemukan kedamaian melalui ajaran sederhana namun mendalam ini. Ini adalah perjalanan transformatif yang mengajak kita untuk melepaskan beban emosional dan menemukan kebahagiaan yang sejati di dalam diri kita sendiri. Cocok bagi siapa saja yang merasa terjebak dalam kecemasan atau stres dan mencari jalan menuju kesadaran yang lebih tinggi.",
-      },
-      {
-        id: 105,
-        judul: "Grit",
-        penulis: "Angela Duckworth",
-        penerbit: "Scribner",
-        tahun: 2016,
-        kategori: "Pengembangan Diri",
-        stok: 4,
-        gambar:
-          "https://images.unsplash.com/photo-1516339901600-2e1a6298ed70?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Mengapa kombinasi antara gairah (passion) dan kegigihan (perseverance) adalah rahasia menuju kesuksesan yang luar biasa, bukan sekadar bakat. Duckworth menjelaskan penelitiannya tentang individu-individu yang paling sukses di berbagai bidang dan menemukan bahwa kunci keberhasilan mereka adalah ketangguhan mental mereka yang luar biasa. Buku ini memberikan kerangka kerja tentang bagaimana menumbuhkan grit dalam diri sendiri dan orang lain, serta mengapa kegagalan seringkali merupakan batu loncatan yang diperlukan. Dengan data ilmiah yang kuat dan cerita yang menginspirasi, penulis menantang gagasan tradisional tentang kejeniusan bawaan. Grit adalah tentang jatuh tujuh kali dan bangkit delapan kali, tentang memiliki tujuan jangka panjang yang konsisten dan bekerja keras untuk mencapainya terlepas dari rintangan yang ada. Ini adalah panduan praktis bagi siapa pun yang ingin mencapai potensi penuh mereka melalui disiplin dan dedikasi.",
-      },
-      {
-        id: 106,
-        judul: "The 7 Habits of Highly Effective People",
-        penulis: "Stephen Covey",
-        penerbit: "Free Press",
-        tahun: 1989,
-        kategori: "Bisnis",
-        stok: 15,
-        gambar:
-          "https://images.unsplash.com/photo-1589998059171-988d887df646?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Prinsip-prinsip etika karakter yang abadi untuk efektivitas pribadi dan interpersonal. Covey menyajikan pendekatan holistik untuk memecahkan masalah pribadi dan profesional melalui perubahan paradigma dari ketergantungan menuju kemandirian, dan akhirnya interdependensi. Tujuh kebiasaan ini mencakup mulai dari menjadi proaktif hingga terus mengasah kemampuan diri. Buku ini telah menjadi standar emas dalam literatur manajemen dan kepemimpinan selama dekade terakhir. Penekanan pada integritas, pelayanan, dan martabat memberikan landasan yang kokoh bagi siapa pun yang ingin memimpin dengan teladan. Setiap kebiasaan dijelaskan dengan detail yang mendalam dan aplikasi praktis yang dapat segera diterapkan dalam kehidupan sehari-hari. Ini bukan sekadar buku tentang manajemen waktu, melainkan tentang kepemimpinan diri dan bagaimana membangun hubungan yang bermakna dan berkelanjutan dengan orang lain.",
-      },
-      {
-        id: 107,
-        judul: "Quiet",
-        penulis: "Susan Cain",
-        penerbit: "Crown",
-        tahun: 2012,
-        kategori: "Sosial",
-        stok: 0,
-        gambar:
-          "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Kekuatan para introvert di dunia yang tidak bisa berhenti berbicara. Susan Cain mengeksplorasi bagaimana budaya modern meremehkan introvert dan mengapa hal itu merupakan kerugian besar bagi masyarakat. Dengan riset yang teliti dan narasi yang menarik, buku ini menunjukkan kontribusi luar biasa yang diberikan oleh para introvert di berbagai bidang, mulai dari teknologi hingga seni. Cain juga memberikan saran praktis bagi introvert untuk menavigasi dunia ekstrovert tanpa kehilangan jati diri mereka, serta bagi ekstrovert untuk lebih menghargai rekan introvert mereka. Buku ini telah memicu percakapan global tentang kepribadian dan kepemimpinan, menantang stereotip lama tentang apa artinya menjadi sukses. Ini adalah pembelaan yang kuat bagi mereka yang lebih suka mendengarkan daripada berbicara dan merenung daripada bertindak secara impulsif, membuktikan bahwa ketenangan adalah kekuatan yang seringkali paling dahsyat.",
-      },
-      {
-        id: 108,
-        judul: "The Lean Startup",
-        penulis: "Eric Ries",
-        penerbit: "Crown",
-        tahun: 2011,
-        kategori: "Bisnis",
-        stok: 9,
-        gambar:
-          "https://images.unsplash.com/photo-1525547718571-039947963ffb?q=80&w=400&h=600&auto=format&fit=crop",
-        deskripsi:
-          "Bagaimana inovasi berkelanjutan dapat menciptakan bisnis yang sukses di tengah ketidakpastian yang ekstrem. Eric Ries memperkenalkan metodologi 'lean' yang menekankan pembelajaran tervalidasi, eksperimen cepat, dan iterasi produk berdasarkan umpan balik nyata dari pelanggan. Tujuannya adalah untuk meminimalkan pemborosan waktu dan sumber daya dalam membangun produk yang tidak diinginkan oleh siapa pun. Buku ini telah merevolusi cara startup dan perusahaan besar mendekati pengembangan produk baru. Dengan konsep seperti Minimum Viable Product (MVP) dan Pivot, Ries memberikan peta jalan yang jelas untuk navigasi di dunia bisnis yang cepat berubah. Fokus utamanya adalah pada kecepatan dan fleksibilitas, memungkinkan tim untuk belajar secepat mungkin tentang apa yang benar-benar berhasil di pasar. Ini adalah bacaan esensial bagi pengusaha, manajer produk, dan siapa pun yang terlibat dalam menciptakan sesuatu yang baru dalam skala apa pun.",
-      },
-    ];
 
     let currentSlide = 0;
 
     function renderCarousel() {
       const track = document.getElementById("carousel-track");
       track.innerHTML = carouselBooks.map((book, index) => {
-        const carouselImage = localImages[index % localImages.length];
-        const sinopsisTampil = truncateWords(book.deskripsi, getSynopsisLimit());
-        book.isCarousel = true; // Mark for modal logic
-        
+        const sinopsisTampil = truncateWords(book.description, getSynopsisLimit());
+        // book.isCarousel = true; //  modal logic
+
         return `
           <div class="carousel-slide p-8 md:p-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center text-center lg:text-left">
@@ -1135,7 +687,7 @@ if ($books) {
               <div class="lg:col-span-5 flex justify-center">
                 <div class="relative group">
                   <div class="absolute inset-0 bg-primary/20 rounded-[30px] blur-2xl group-hover:bg-primary/30 transition-all"></div>
-                  <img src="${carouselImage}" alt="${book.judul}" 
+                  <img src="images/${book.image_url}" alt="${book.title}" 
                        onerror="this.onerror=null; this.src='images/foto1.jpeg'"
                        class="relative carousel-image shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
                 </div>
@@ -1144,27 +696,27 @@ if ($books) {
               <!-- Right: Info -->
               <div class="lg:col-span-7 carousel-info">
                 <div class="space-y-3">
-                  <span class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest">${book.kategori}</span>
-                  <h2 class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">${book.judul}</h2>
-                  <p class="text-xl font-medium text-primary/80 italic">${book.penulis}</p>
+                  <span class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest">${book.category_name}</span>
+                  <h2 class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">${book.title}</h2>
+                  <p class="text-xl font-medium text-primary/80 italic">${book.author}</p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold text-slate-500 border-y border-secondary/30 py-3">
                   <div class="space-y-1">
                     <span class="block text-slate-400 font-normal">Penerbit</span>
-                    ${book.penerbit}
+                    ${book.publisher}
                   </div>
                   <div class="space-y-1">
                     <span class="block text-slate-400 font-normal">Tahun</span>
-                    ${book.tahun}
+                    ${book.year}
                   </div>
                   <div class="space-y-1">
                     <span class="block text-slate-400 font-normal">Stok</span>
-                    ${book.stok}
+                    ${book.stock}
                   </div>
                   <div class="space-y-1">
                     <span class="block text-slate-400 font-normal">Status</span>
-                    <span class="${book.stok > 0 ? "text-green-500" : "text-red-500"}">${book.stok > 0 ? "Tersedia" : "Habis"}</span>
+                    <span class="${book.stock > 0 ? "text-green-500" : "text-red-500"}">${book.stock > 0 ? "Tersedia" : "Habis"}</span>
                   </div>
                 </div>
                 
@@ -1174,7 +726,7 @@ if ($books) {
                     ${sinopsisTampil}
                   </p>
                   <div class="pt-2">
-                    <button onclick='openCarouselModal(${index})' class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
+                    <button onclick='openCarouselModal(${book.id})' class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
                       Lihat Detail
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
@@ -1189,10 +741,10 @@ if ($books) {
       }).join('');
       updateCarouselPosition();
     }
+    renderCarousel();
 
-    function openCarouselModal(index) {
-      const book = carouselBooks[index];
-      book.isCarousel = true;
+    function openCarouselModal(id) {
+      const book = carouselBooks.find(book => book.id === id);
       openModal(book);
     }
 
@@ -1226,12 +778,20 @@ if ($books) {
 
     // Initial Render
     document.addEventListener("DOMContentLoaded", () => {
-      renderBooks(currentPage);
-      renderPagination();
       renderCarousel();
     });
 
     window.addEventListener('resize', renderCarousel);
+    window.addEventListener('load', () => {
+
+      if (window.location.search) {
+
+        window.location.href =
+          window.location.pathname;
+
+      }
+
+    });
   </script>
 </body>
 

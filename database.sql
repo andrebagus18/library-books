@@ -40,7 +40,7 @@ CREATE TABLE books (
 );
 
 --Tabel Kategori
-CREATE TABLE kategories (
+CREATE TABLE categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50)
 );
@@ -64,14 +64,19 @@ CREATE TABLE loans (
 INSERT INTO users (username, email, password, full_name, role) VALUES 
 ('admin', 'admin@gmail.com', md5('admin123'), 'administrator', 'admin');
 
-INSERT INTO books (title, author, publiser, stock, location, year, image_url, category_id, description) VALUES 
+INSERT INTO books (title, author, publisher, stock, location, year, image_url, category_id, description) VALUES 
 ('The Art of Programming','John Doe','Tech Press', 5,'rak_B', 2021, 'foto1.jpeg', 1, 'Panduan lengkap untuk menguasai seni pemrograman modern.'),
-('Modern Web Design','Jane Smith','Creative Minds', 0, 'rak_A', 2022, 'foto2.jpeg', 2, 'Eksplorasi tren desain web terbaru untuk tahun 2022.'),
-('The Future of AI', 'Alan Turing', 'Future Books', 3, 'rak_C', 2023, 'foto3.jpeg', 3, 'Masa depan kecerdasan buatan dan dampaknya bagi manusia.'),
-('JavaScript Masterclass', 'Brendan Eich', 'JS Guru', 8, 'rak_D', 2020, 'foto4.jpeg', 4, 'Kuasai JavaScript dari dasar hingga tingkat lanjut.'),
-('UI/UX Essentials', 'Sarah Johnson', 'Design Co', 6, 'rak_C', 2021, 'foto5.jpeg', 5, 'Prinsip-prinsip penting dalam desain UI dan UX'),
-('The Digital Nomad','Chris Brown','Traveler Ink', 12, 'rak_B', 2019, 'foto6.jpeg', 6, 'Cara menjalani hidup sebagai nomad digital yang sukses.'),
-('Startup Secrets', 'Elon Musk', 'Innovation Press', 4, 'rak_A', 2023, 'foto7.jpeg', 7, 'Rahasia di balik kesuksesan startup raksasa.'),
-('Productivity Hacks', 'Tim Ferriss', 'Efficient Life', 0, 'rak_D', 2021, 'foto8.jpeg', 8, 'Tips praktis untuk meningkatkan produktivitas harian Anda.'),
-('Data Science 101', 'Andrew Ng', 'Code Academic', 7, 'rak_B', 2022, 'foto9.jpeg', 9, 'Langkah awal untuk memahami dunia data science.'),
-('Creative Writing', 'Ernest Hemingway', 'Lit Books', 15, 'rak_A', 2020, 'foto10.jpeg', 10, 'Teknik menulis kreatif dari sang legenda sastra.');
+('Modern Web Design','Jane Smith','Creative Minds', 0, 'rak_A', 2022, 'foto2.jpeg', 1, 'Eksplorasi tren desain web terbaru untuk tahun 2022.'),
+('The Future of AI', 'Alan Turing', 'Future Books', 3, 'rak_C', 2023, 'foto3.jpeg', 1, 'Masa depan kecerdasan buatan dan dampaknya bagi manusia.'),
+('JavaScript Masterclass', 'Brendan Eich', 'JS Guru', 8, 'rak_D', 2020, 'foto4.jpeg', 1, 'Kuasai JavaScript dari dasar hingga tingkat lanjut.'),
+('UI/UX Essentials', 'Sarah Johnson', 'Design Co', 6, 'rak_C', 2021, 'foto5.jpeg', 3, 'Prinsip-prinsip penting dalam desain UI dan UX'),
+('The Digital Nomad','Chris Brown','Traveler Ink', 12, 'rak_B', 2019, 'foto6.jpeg', 3, 'Cara menjalani hidup sebagai nomad digital yang sukses.'),
+('Startup Secrets', 'Elon Musk', 'Innovation Press', 4, 'rak_A', 2023, 'foto7.jpeg', 2, 'Rahasia di balik kesuksesan startup raksasa.'),
+('Productivity Hacks', 'Tim Ferriss', 'Efficient Life', 0, 'rak_D', 2021, 'foto8.jpeg', 2, 'Tips praktis untuk meningkatkan produktivitas harian Anda.'),
+('Data Science 101', 'Andrew Ng', 'Code Academic', 7, 'rak_B', 2022, 'foto9.jpeg', 2, 'Langkah awal untuk memahami dunia data science.'),
+('Creative Writing', 'Ernest Hemingway', 'Lit Books', 15, 'rak_A', 2020, 'foto10.jpeg', 3, 'Teknik menulis kreatif dari sang legenda sastra.');
+
+INSERT INTO categories (name) VALUES 
+('progamming'),
+('data_science'),
+('UI/UX');
