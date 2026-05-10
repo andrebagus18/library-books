@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,29 +35,43 @@
             font-family: 'Outfit', sans-serif;
             background-color: #F8F9FA;
         }
+
         .sidebar-transition {
             transition: transform 0.3s ease-in-out;
         }
+
         .content-fade {
             animation: fadeIn 0.4s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         /* Custom scrollbar for tables */
         .table-container::-webkit-scrollbar {
             height: 6px;
         }
+
         .table-container::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
+
         .table-container::-webkit-scrollbar-thumb {
             background: #A86E43;
             border-radius: 10px;
         }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800">
 
     <!-- Mobile Header -->
@@ -73,7 +88,7 @@
     </header>
 
     <div class="flex min-h-screen relative overflow-hidden">
-        
+
         <!-- Sidebar -->
         <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 lg:static sidebar-transition flex flex-col shadow-sm">
             <!-- Sidebar Header -->
@@ -122,12 +137,16 @@
 
             <!-- Bottom Actions -->
             <div class="p-6 border-t border-gray-100 space-y-2">
-                <button onclick="location.href = '../index.html'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-success text-white hover:bg-emerald-600 transition-all duration-300 group shadow-md shadow-success/20">
+                <button onclick="location.href = '../index.php'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-success text-white hover:bg-emerald-600 transition-all duration-300 group shadow-md shadow-success/20">
                     <i data-lucide="home" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                    <span class="font-semibold text-sm"><- to Home</span>
+                    <span class="font-semibold text-sm"><- Back to Home</span>
                 </button>
-                <button class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300 group">
-                    <i data-lucide="log-out" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                <button
+                    onclick="location.href = 'logout.php'"
+                    class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300 group">
+                    <i
+                        data-lucide="log-out"
+                        class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
                     <span class="font-semibold">Logout</span>
                 </button>
             </div>
@@ -135,7 +154,7 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 min-h-screen overflow-y-auto bg-[#FDFCFB] p-4 lg:p-10">
-            
+
             <!-- Dashboard Section -->
             <section id="dashboard" class="content-section content-fade">
                 <header class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -425,7 +444,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="lg:col-span-1">
                         <div class="bg-primary p-8 rounded-[2rem] text-white shadow-xl shadow-primary/20 flex flex-col justify-between min-h-[300px]">
                             <div>
@@ -486,7 +505,7 @@
                     l.classList.remove('active', 'bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
                     l.classList.add('text-gray-600', 'hover:bg-primary/5', 'hover:text-primary');
                 });
-                
+
                 link.classList.add('active', 'bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
                 link.classList.remove('text-gray-600', 'hover:bg-primary/5', 'hover:text-primary');
 
@@ -511,8 +530,13 @@
 
         // Date update
         const dateEl = document.getElementById('current-date');
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
         dateEl.textContent = new Date().toLocaleDateString('id-ID', options);
     </script>
 </body>
+
 </html>

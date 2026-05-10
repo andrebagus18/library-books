@@ -1,20 +1,23 @@
 <?php
 session_start();
+// var_dump($_SESSION);
+// die();
 require_once 'config/database.php';
 require_once 'functions/helper.php';
 
 $books = fetchAll("SELECT * FROM books WHERE stock > 0 ORDER BY id DESC");
 if ($books) {
   $image = getImage($books['image_url']);
+  var_dump($image);
 }
 
 $carouselBooks = getCarouselBooks($pdo);
 $pagination = getPaginatedBooks();
 $books = $pagination['data'];
-$link = './public/login.html';
-if (isLogin()) {
-  $link = isAdmin() ? './public/admin.html' : './public/member.html';
-}
+
+$isLogin = isLogin();
+$isAdmin = $isLogin ? isAdmin() : false;
+$link = $isLogin ? ($isAdmin ? 'public/admin.php' : 'public/member.php') : 'public/login.php';
 
 ?>
 
@@ -200,15 +203,15 @@ if (isLogin()) {
       </div>
 
       <!-- Right: Auth -->
-      <?php if (isLogin()) : ?>
+      <?php if ($isLogin) : ?>
         <div class="flex items-center space-x-4">
-          <a href="index.php"
-            class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Logout</a>
+          <a href="public/logout.php"
+            class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Logout <?php $_SESSION['email'] ?></a>
         </div>
       <?php else : ?>
         <div class="flex items-center space-x-4">
-          <a href="public/login.html" class="nav-link font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
-          <a href="public/login.html#register"
+          <a href="public/login.php" class="nav-link font-semibold text-slate-700 hover:text-primary transition-colors">Login</a>
+          <a href="public/login.php#register"
             class="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-opacity-90 transition-all shadow-lg shadow-primary/20">Sign
             Up</a>
         </div>
@@ -396,7 +399,7 @@ if (isLogin()) {
                 <div class="grid grid-cols-2 gap-3 pt-2">
                   <button <?= !$canBorrow ? "disabled" : "" ?> type="button" class="py-2.5 rounded-xl font-bold text-sm transition-all <?= $canBorrow ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>">
                     <?= !$isLogin
-                      ? "Login untuk Pinjam"
+                      ? "Pinjam Buku"
                       : ($isAvailable ? "Pinjam Buku" : "Stok Habis")
                     ?>
                   </button>
