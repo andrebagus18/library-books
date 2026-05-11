@@ -80,3 +80,33 @@ INSERT INTO categories (name) VALUES
 ('progamming'),
 ('data_science'),
 ('UI/UX');
+
+
+-- 1. Struktur link sidebar
+-- <a href="#dashboard" class="nav-link">Dashboard</a>
+-- <a href="#tambah" class="nav-link">Tambah Buku</a>
+-- <a href="#riwayat" class="nav-link">Riwayat</a>
+-- 2. JS untuk baca hash
+-- function setActiveTab() {
+
+--     const hash = window.location.hash || "#dashboard";
+
+--     document.querySelectorAll('.tab-content')
+--         .forEach(el => el.classList.add('hidden'));
+
+--     document.querySelector(hash)
+--         .classList.remove('hidden');
+
+--     document.querySelectorAll('.nav-link')
+--         .forEach(el => el.classList.remove('active'));
+
+--     document.querySelector(`a[href="${hash}"]`)
+--         ?.classList.add('active');
+-- }
+
+-- window.addEventListener('load', setActiveTab);
+-- window.addEventListener('hashchange', setActiveTab);
+-- 3. Tab content
+-- <div id="dashboard" class="tab-content">...</div>
+-- <div id="tambah" class="tab-content hidden">...</div>
+-- <div id="riwayat" class="tab-content hidden">...</div>

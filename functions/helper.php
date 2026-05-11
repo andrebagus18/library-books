@@ -31,44 +31,20 @@ function getPaginatedBooks($limit = 6)
         ['%' . $search . '%']
     );
     $totalPage = ceil($totalData['total'] / $limit);
-
-    // 2. Hitung total data
-    // $stmtTotal = $pdo->query("SELECT COUNT(*) FROM books");
-    // $totalData = $stmtTotal->fetchColumn();
-    // $totalHalaman = ceil($totalData / $limit);
-
     $books = fetchAll(
         "
-        SELECT 
-            books.*,
-            categories.name AS category_name
-        FROM books
-        JOIN categories
-        ON books.category_id = categories.id
-        WHERE books.title ILIKE ?
-        ORDER BY created_at DESC
-        LIMIT $limit OFFSET $offset
-        ",
+    SELECT 
+        books.*,
+        categories.name AS category_name
+    FROM books
+    LEFT JOIN categories
+    ON books.category_id = categories.id
+    WHERE books.title ILIKE ?
+    ORDER BY created_at DESC
+    LIMIT $limit OFFSET $offset
+    ",
         ['%' . $search . '%']
     );
-
-    // 3. Ambil data buku dengan LIMIT & OFFSET
-    //     $stmtBooks = $pdo->prepare("
-    //     SELECT 
-    //         books.*,
-    //         categories.name AS category_name
-    //     FROM books
-    //     JOIN categories
-    //     ON books.category_id = categories.id
-    //     ORDER BY created_at DESC
-    //     LIMIT :limit OFFSET :offset
-    // ");
-    //     $stmtBooks->bindValue(':limit', $limit, PDO::PARAM_INT);
-    //     $stmtBooks->bindValue(':offset', $offset, PDO::PARAM_INT);
-    //     $stmtBooks->execute();
-    //     $books = $stmtBooks->fetchAll(PDO::FETCH_ASSOC);
-
-    // 4. Kembalikan semua informasi dalam satu array
     return [
         'data' => $books,
         'currentPage' => $page,

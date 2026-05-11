@@ -3,32 +3,85 @@ session_start();
 require_once '../config/database.php';
 require_once '../functions/helper.php';
 
+
 // if (!isLogin()) {
 //   redirect('login.php');
 // }
 
+$flash = getFlash();
+$noBook = 1;
+$noUser = 1;
+
+// Logic Buku
+$books = fetchAll("SELECT * FROM books ORDER BY id DESC");
+$editBook = isset($_GET['edit-buku']) ? fetchOne("SELECT * FROM books WHERE id = ?", [$_GET['id']]) : null;
+// Hapus buku
+if (isset($_GET['delete-buku'])) {
+  query("DELETE FROM books WHERE id = ?", [$_GET['delete-buku']]);
+  setFlash('success', 'Buku berhasil dihapus!');
+  redirect('admin.php');
+}
+// Edit + Tambah buku
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  if ($_POST['mode-editBook'] == 'edit') {
+    query(
+      "UPDATE books SET title=?, author=?, publisher=?, stock=?, location=?, year=?, description=? WHERE id=?",
+      [
+        $_POST['title'],
+        $_POST['author'],
+        $_POST['publisher'],
+        $_POST['stock'],
+        $_POST['location'],
+        $_POST['year'],
+        $_POST['description'],
+        $_POST['id']
+      ]
+    );
+    setFlash('success', 'Buku berhasil diupdate!');
+  } else {
+    query(
+      "INSERT INTO books (title, author, publisher, stock, location, year, description) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        $_POST['title'],
+        $_POST['author'],
+        $_POST['publisher'],
+        $_POST['stock'] ?? 1,
+        $_POST['location'],
+        $_POST['year'] ?? null,
+        $_POST['description']
+      ]
+    );
+    setFlash('success', 'Buku berhasil ditambah!');
+  }
+  redirect('admin.php');
+}
+
+
+
+// Logic User
 $users = fetchAll("SELECT * FROM users ORDER BY id ASC");
 $editUser = isset($_GET['edit']) ? fetchOne("SELECT * FROM users WHERE id = ?", [$_GET['edit']]) : null;
-$flash = getFlash();
-
 // Hapus user
 if (isset($_GET['delete'])) {
   query("DELETE FROM users WHERE id = ?", [$_GET['delete']]);
   setFlash('success', 'User berhasil dihapus!');
   redirect('admin.php');
 }
-
 // Update user
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
   query(
     "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
-    [$_POST['username'], $_POST['email'], $_POST['full_name'], $_POST['role'], $_POST['id']]
+    [
+      $_POST['username'],
+      $_POST['email'],
+      $_POST['full_name'],
+      $_POST['role'],
+      $_POST['id']
+    ]
   );
-  setFlash('success', 'user berhasil diupdate!');
+  setFlash('success', 'User berhasil diupdate!');
   redirect('admin.php');
 }
-
-
 
 
 ?>
@@ -73,6 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
     body {
       font-family: "Outfit", sans-serif;
       background-color: #e0e0e0;
+      visibility: hidden;
+    }
+
+    body.ready {
+      visibility: visible;
     }
 
     .sidebar-transition {
@@ -168,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
       <nav class="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
         <button
           data-target="dashboard"
-          class="nav-link active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all duration-300 group">
+          class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all duration-300 group">
           <i
             data-lucide="layout-dashboard"
             class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
@@ -343,15 +401,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
           class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
           <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
             <i data-lucide="plus-circle" class="w-5 h-5 text-primary"></i>
-            Tambah Buku Baru
+            <?= $editBook ? 'Edit Buku' : 'Tambah Buku Baru' ?>
           </h3>
-          <form
+          <form method="POST" id="tambah-buku"
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <input type="hidden" name="mode-editBook" id="mode-editBook" value="create">
+            <input type="hidden" name="id" id="id">
             <div class="space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Judul Buku</label>
               <input
                 type="text"
                 placeholder="Masukkan judul..."
+                name="title"
+                id="title"
+                value="<?= $editBook['title'] ?? '' ?>"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Penulis</label>
+              <input
+                type="text"
+                placeholder="Masukkan nama penulis..."
+                name="author"
+                id="author"
+                value="<?= $editBook['author'] ?? '' ?>"
                 class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
             </div>
             <div class="space-y-1">
@@ -359,6 +432,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               <input
                 type="text"
                 placeholder="Nama penerbit..."
+                name="publisher"
+                id="publisher"
+                value="<?= $editBook['publisher'] ?? '' ?>"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Stok</label>
+              <input
+                type="number"
+                placeholder="1"
+                name="stock"
+                id="stock"
+                value="<?= $editBook['stock'] ?? '' ?>"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Deskripsi</label>
+              <textarea
+                placeholder="Deskripsi singkat tentang buku..."
+                name="description"
+                id="description"
+
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm overflow-y-auto no-scrollbar"
+                rows="3"><?= $editBook['description'] ?? '' ?></textarea>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Lokasi (Rak)</label>
+              <input
+                type="text"
+                placeholder="rak A, B2, C1, ..."
+                name="location"
+                id="location"
+                value="<?= $editBook['location'] ?? '' ?>"
                 class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
             </div>
             <div class="space-y-1">
@@ -366,22 +472,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               <input
                 type="number"
                 placeholder="Contoh: 2024"
+                name="year"
+                id="year"
+                value="<?= $editBook['year'] ?? '' ?>"
                 class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
             </div>
-            <div class="space-y-1">
-              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Stok</label>
-              <div class="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="0"
-                  class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
-                <button
-                  type="button"
-                  class="bg-info text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm">
-                  Simpan
-                </button>
-              </div>
-            </div>
+            <button
+              type="submit"
+              id="btn-submit"
+              class="bg-info text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm">
+              Simpan
+            </button>
           </form>
         </div>
 
@@ -389,7 +490,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
           <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse overflow-scroll">
               <thead>
                 <tr class="bg-gray-50/50">
                   <th
@@ -402,15 +503,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Penulis
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Penerbit
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Tahun
+                    Stok
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider overflow-hidden">
+                    Deskripsi
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Stok
+                    Lokasi (Rak)
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Tahun
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
@@ -419,28 +532,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                  <td class="px-8 py-5 font-bold text-gray-900">
-                    Atomic Habits
-                  </td>
-                  <td class="px-8 py-5 text-gray-600">Gramedia</td>
-                  <td class="px-8 py-5 text-gray-600">2018</td>
-                  <td class="px-8 py-5 text-gray-600 font-bold">12</td>
-                  <td class="px-8 py-5">
-                    <div class="flex items-center justify-center gap-3">
-                      <button
-                        class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                      </button>
-                      <button
-                        class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <!-- Baris dummy lainnya bisa ditambahkan di sini -->
+                <?php foreach ($books as $book): ?>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noBook++ ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900">
+                      <?= $book['title'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600"><?= $book['author'] ?></td>
+                    <td class="px-8 py-5 text-gray-600"><?= $book['publisher'] ?></td>
+                    <td class="px-8 py-5 text-gray-600 font-bold"><?= $book['stock'] ?></td>
+                    <td class="px-8 py-5 text-gray-600">
+                      <?= $book['description'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600"><?= $book['location'] ?></td>
+                    <td class="px-8 py-5 text-gray-600"><?= $book['year'] ?></td>
+                    <td class="px-8 py-5">
+                      <div class="flex items-center justify-center gap-3">
+                        <a href="#"
+                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-buku" data-id='<?= $book['id'] ?>' data-title='<?= $book['title'] ?>' data-author='<?= $book['author'] ?>' data-publisher='<?= $book['publisher'] ?>' data-stock="<?= ($book['stock']) ?>" data-description="<?= ($book['description']) ?>" data-location="<?= ($book['location']) ?>" data-year="<?= $book['year'] ?>">
+                          <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </a>
+                        <a href="?delete-buku=<?= $book['id'] ?>"
+                          class=" delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" onclick="return confirm('Apakah anda Yakin?')">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -462,7 +581,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
             <i data-lucide="plus-circle" class="w-5 h-5 text-primary"></i>
             Tambah Kategori Baru
           </h3>
-          <form class="flex gap-4 items-end max-w-2xl">
+          <form method="POST" id="tambah-kategori" class="flex gap-4 items-end max-w-2xl">
+            <input type="hidden" name="action" value="tambah-kategori">
+
             <div class="flex-1 space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama Kategori</label>
               <input
@@ -612,10 +733,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
             <i data-lucide="user-plus" class="w-5 h-5 text-primary"></i>
             Data Akun
           </h3>
-          <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <?php if ($editUser): ?>
-              <input type="hidden" id="id" name="id" value="<?= $editUser['id'] ?>">
-            <?php endif; ?>
+          <form method="POST" id="edit" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <input type="hidden" id="id" name="id" value="<?= $editUser['id'] ?? '' ?>">
             <div class="space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama</label>
               <input
@@ -648,7 +767,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               <select
                 id="role"
                 name="role"
-                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm">
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" value="<?= $editUser['role'] ?? '' ?>">
                 <option value="user">Member</option>
                 <option value="admin">Admin</option>
               </select>
@@ -699,7 +818,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               <tbody class="divide-y divide-gray-100">
                 <?php foreach ($users as $user): ?>
                   <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-8 py-5 font-medium text-gray-600"><?= $user['id'] ?></td>
+                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noUser++ ?></td>
                     <td class="px-8 py-5 font-bold text-gray-900">
                       <?= $user['username'] ?>
                     </td>
@@ -715,7 +834,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                     <td class="px-8 py-5">
                       <div class="flex items-center justify-center gap-3">
                         <a href="#"
-                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-id='<?= $user['id'] ?>' data-name='<?= $user['username'] ?>' data-email='<?= $user['email'] ?>' data-fullname='<?= $user['full_name'] ?>' data-role="<?= htmlspecialchars($user['role']) ?>">
+                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-user" data-id='<?= $user['id'] ?>' data-name='<?= $user['username'] ?>' data-email='<?= $user['email'] ?>' data-fullname='<?= $user['full_name'] ?>' data-role="<?= htmlspecialchars($user['role']) ?>">
                           <i data-lucide="edit-3" class="w-4 h-4"></i>
                         </a>
                         <a href="?delete=<?= $user['id'] ?>"
@@ -1002,32 +1121,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
     // Initialize Lucide Icons
     lucide.createIcons();
 
-    //tanpa reload data
+    // Logic Edit ke Form tanpa reload halaman
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function(event) {
         event.preventDefault();
-        document.getElementById('username').value =
-          this.dataset.name;
-        document.getElementById('email').value =
-          this.dataset.email;
-        document.getElementById('full_name').value =
-          this.dataset.fullname;
-        document.getElementById('role').value =
-          this.dataset.role;
+        const action = this.dataset.action;
+        if (action === 'edit-user') {
+          document.getElementById('id').value =
+            this.dataset.id;
+          document.getElementById('username').value =
+            this.dataset.name;
+          document.getElementById('email').value =
+            this.dataset.email;
+          document.getElementById('full_name').value =
+            this.dataset.fullname;
+          document.getElementById('role').value =
+            this.dataset.role;
+        }
+        if (action === 'edit-buku') {
+          document.querySelector('#id').value = this.dataset.id;
+          document.querySelector('#title').value = this.dataset.title;
+          document.querySelector('#author').value = this.dataset.author;
+          document.querySelector('#publisher').value = this.dataset.publisher;
+          document.querySelector('#stock').value = this.dataset.stock;
+          document.querySelector('#description').value = this.dataset.description;
+          document.querySelector('#location').value = this.dataset.location;
+          document.querySelector('#year').value = this.dataset.year;
+          document.querySelector('#mode-editBook').value = 'edit';
+          document.querySelector('#btn-submit').textContent = 'Update';
+        }
       });
     });
-    // document.querySelectorAll('.delete-btn').forEach(button => {
-
-    //   button.addEventListener('click', function() {
-
-    //     const row = this.closest('tr');
-
-    //     row.style.transition = '0.3s';
-    //     row.style.opacity = '0';
-
-    //   });
-
-    // });
 
     // Sidebar logic
     const sidebar = document.getElementById("sidebar");
@@ -1048,43 +1172,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
     mobileToggle.addEventListener("click", toggleSidebar);
     overlay.addEventListener("click", toggleSidebar);
 
-    // Navigation logic
     const navLinks = document.querySelectorAll(".nav-link");
     const sections = document.querySelectorAll(".content-section");
 
+    function showTab(target) {
+      // save state
+      localStorage.setItem("activeTab", target);
+      // update active link
+      navLinks.forEach((l) => {
+        l.classList.toggle("active", l.dataset.target === target);
+      });
+      // switch section
+      sections.forEach((s) => {
+        s.classList.add("hidden");
+        if (s.id === target) {
+          s.classList.remove("hidden");
+        }
+      });
+      // close sidebar mobile
+      if (window.innerWidth < 1024) {
+        toggleSidebar();
+      }
+      // scroll top
+      document.querySelector("main").scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
     navLinks.forEach((link) => {
       link.addEventListener("click", () => {
-        const target = link.getAttribute("data-target");
-
-        // Update active link
-        navLinks.forEach((l) => l.classList.remove("active"));
-        link.classList.add("active");
-
-        // Switch sections
-        sections.forEach((s) => {
-          s.classList.add("hidden");
-          if (s.id === target) {
-            s.classList.remove("hidden");
-          }
-        });
-
-        // Close sidebar on mobile
-        if (window.innerWidth < 1024) {
-          toggleSidebar();
-        }
-
-        // Smooth scroll to top of main content
-        document
-          .querySelector("main")
-          .scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });
+        const target = link.dataset.target;
+        showTab(target);
       });
     });
-
-    // Set default view to dashboard
-    document.querySelector('[data-target="dashboard"]').click();
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedTab = localStorage.getItem("activeTab") || "dashboard";
+      showTab(savedTab);
+      document.body.classList.add("ready");
+    });
   </script>
 </body>
 
