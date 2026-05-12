@@ -15,17 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = $_POST['reg-full_name'];
     $password_raw = $_POST['reg-confirm'];
 
-    // Simple validation (you can expand this)
+    // Validasi input
     $check = fetchOne("SELECT id FROM users WHERE username = ? OR email = ?", [$username, $email]);
     if (empty($username) || empty($email) || empty($full_name) || empty($password_raw)) {
       echo "<script>alert('Semua field harus diisi!');</script>";
     } elseif ($check) {
       echo "<script>alert('Username atau email sudah terdaftar!');</script>";
     } else {
-      // Insert new user
+      // user baru
       $password = md5($password_raw);
       query("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)", [$username, $email, $full_name, $password]);
       redirect('login.php#login');
+      // ambil user baru
+      $user = fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
+      // member role
+      query("INSERT INTO members (user_id, member_code, name) VALUES (?,?,?)", [$user['id'], 'MBR-' . str_pad($user['id'], 3, '0', STR_PAD_LEFT), $full_name]);
       $_SESSION['user_id'] = $user['id'];
       $_SESSION['email'] = $user['email'];
       $_SESSION['password'] = $user['password'];

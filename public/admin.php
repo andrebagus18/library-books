@@ -11,10 +11,17 @@ require_once '../functions/helper.php';
 $flash = getFlash();
 $noBook = 1;
 $noUser = 1;
+$noMember = 1;
+
+// Dashboard
+$totalbooks = fetchOne("SELECT COUNT(*) as total FROM books")['total'];
+$totalMembers = fetchOne("SELECT COUNT(*) as total FROM users WHERE role = 'user'")['total'];
+// $booksBorrowed = fetchOne("SELECT COUNT(*) as total FROM bookd WHERE role = 'user'")['total'];
+
 
 // Logic Buku
 $books = fetchAll("SELECT * FROM books ORDER BY id DESC");
-$editBook = isset($_GET['edit-buku']) ? fetchOne("SELECT * FROM books WHERE id = ?", [$_GET['id']]) : null;
+$editBook = isset($_GET['edit-buku']) ? fetchOne("SELECT * FROM books WHERE id = ?", [$_GET['edit-buku']]) : null;
 // Hapus buku
 if (isset($_GET['delete-buku'])) {
   query("DELETE FROM books WHERE id = ?", [$_GET['delete-buku']]);
@@ -57,29 +64,78 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 
+// Logic members
+$members = fetchAll("SELECT members.id AS member_id, members.user_id, members.member_code,
+        members.name,
+        users.email,
+        members.is_active FROM members JOIN users ON users.id = members.user_id WHERE users.role = 'user' ORDER BY members.id DESC");
+//hapus member
+if (isset($_GET['delete-member'])) {
+  $member = fetchOne("SELECT user_id FROM members WHERE id = ?", [$_GET['delete-member']]);
+  query("DELETE FROM members WHERE id = ?", [$_GET['delete-member']]);
+  query("DELETE FROM users WHERE id = ?", [$member['user_id']]);
+  setFlash('success', 'Member berhasil dihapus!');
+  redirect('admin.php');
+}
+// Edit member
+$editMember = isset($_GET['edit-member']) ? fetchOne("SELECT * FROM members WHERE id = ?", [$_GET['edit-member']]) : null;
 
 // Logic User
 $users = fetchAll("SELECT * FROM users ORDER BY id ASC");
-$editUser = isset($_GET['edit']) ? fetchOne("SELECT * FROM users WHERE id = ?", [$_GET['edit']]) : null;
+$editUser = isset($_GET['edit-user']) ? fetchOne("SELECT * FROM users WHERE id = ?", [$_GET['edit-user']]) : null;
 // Hapus user
 if (isset($_GET['delete'])) {
   query("DELETE FROM users WHERE id = ?", [$_GET['delete']]);
   setFlash('success', 'User berhasil dihapus!');
   redirect('admin.php');
 }
-// Update user
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
-  query(
-    "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
-    [
-      $_POST['username'],
-      $_POST['email'],
-      $_POST['full_name'],
-      $_POST['role'],
-      $_POST['id']
-    ]
-  );
-  setFlash('success', 'User berhasil diupdate!');
+// edit user
+// if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
+//   query(
+//     "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
+//     [
+//       $_POST['username'],
+//       $_POST['email'],
+//       $_POST['full_name'],
+//       $_POST['role'],
+//       $_POST['id']
+//     ]
+//   );
+//   setFlash('success', 'User berhasil diupdate!');
+//   redirect('admin.php');
+// }
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  if (isset($_POST['simpan'])) {
+    query(
+      "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
+      [
+        $_POST['username'],
+        $_POST['email'],
+        $_POST['full_name'],
+        $_POST['role'],
+        $_POST['id']
+      ]
+    );
+    setFlash('success', 'User berhasil diupdate!');
+  } elseif (isset($_POST['simpan-member'])) {
+    query(
+      "UPDATE members SET member_code=?, name=?, is_active=? WHERE id=?",
+      [
+        $_POST['member_code'],
+        $_POST['name'],
+        $_POST['is_active'],
+        $_POST['member_id']
+      ]
+    );
+    query(
+      "UPDATE users SET email=? WHERE id=?",
+      [
+        $_POST['email'],
+        $_POST['user_id']
+      ]
+    );
+    setFlash('success', 'Member berhasil diupdate!');
+  }
   redirect('admin.php');
 }
 
@@ -345,7 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               class="bg-blue-50 text-blue-600 p-3 rounded-2xl w-fit mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
               <i data-lucide="book" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-3xl font-black text-gray-900 mb-1">128</h2>
+            <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalbooks ?></h2>
             <p class="text-gray-500 text-sm font-semibold">
               Total Semua Buku
             </p>
@@ -381,7 +437,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
               class="bg-info/10 text-info p-3 rounded-2xl w-fit mb-4 group-hover:bg-info group-hover:text-white transition-colors duration-300">
               <i data-lucide="users" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-3xl font-black text-gray-900 mb-1">85</h2>
+            <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalMembers ?></h2>
             <p class="text-gray-500 text-sm font-semibold">Total Member</p>
           </div>
         </div>
@@ -652,6 +708,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
             Kelola status keaktifan dan informasi member.
           </p>
         </header>
+        <div
+          class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
+          <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+            <i data-lucide="user-plus" class="w-5 h-5 text-primary"></i>
+            Data Member
+          </h3>
+          <form method="POST" id="edit-member" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <input type="hidden" id="id" name="id" value="<?= $editMember['member_id'] ?? '' ?>">
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Kode Member</label>
+              <input
+                type="text"
+                placeholder="MBR-001"
+                name="member_code"
+                id="member_code"
+                value="<?= $editMember['member_code'] ?? '' ?>"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama Lengkap</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Nama lengkap..."
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" value="<?= $editMember['name'] ?? '' ?>" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="contoh@email.com"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" value="<?= $editMember['email'] ?? '' ?>" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Status</label>
+              <select
+                id="is_active"
+                name="is_active"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" value="<?= $editMember['is_active'] ?? '' ?>">
+                <option value="1">Aktif</option>
+                <option value="0">Tidak Aktif</option>
+              </select>
+            </div>
+            <div class="flex gap-2 items-end">
+              <button
+                type="submit"
+                name="simpan-member"
+                class="bg-info text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm h-fit mb-0.5">
+                Update Member
+              </button>
+            </div>
+          </form>
+        </div>
 
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
@@ -662,6 +774,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     No
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Kode Member
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -682,36 +798,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                  <td class="px-8 py-5 font-bold text-gray-900">
-                    Akhmad Fauzi
-                  </td>
-                  <td class="px-8 py-5 text-gray-600">akhmad@mail.com</td>
-                  <td class="px-8 py-5">
-                    <span
-                      class="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-bold border border-success/20">Aktif</span>
-                  </td>
-                  <td class="px-8 py-5">
-                    <div class="flex items-center justify-center gap-3">
-                      <button
-                        class="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all"
-                        title="Edit">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                      </button>
-                      <button
-                        class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all"
-                        title="Hapus">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                      </button>
-                      <button
-                        class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white transition-all"
-                        title="Nonaktifkan">
-                        <i data-lucide="user-minus" class="w-4 h-4"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <?php foreach ($members as $member): ?>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noMember++ ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900">
+                      <?= $member['member_code'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600"><?= $member['name'] ?></td>
+                    <td class="px-8 py-5 text-gray-600"><?= $member['email'] ?></td>
+                    <td class="px-8 py-5">
+                      <span
+                        class="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-bold border border-success/20"><?= $member['is_active'] ? 'Aktif' : 'Tidak Aktif' ?></span>
+                    </td>
+                    <td class="px-8 py-5">
+                      <div class="flex items-center justify-center gap-3">
+                        <a href="#"
+                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-member" data-id='<?= $member['member_id'] ?>' data-member_code='<?= $member['member_code'] ?>' data-name='<?= $member['name'] ?>' data-email='<?= $member['email'] ?>' data-isactive="<?= htmlspecialchars($member['is_active']) ?>">
+                          <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </a>
+                        <a href="?delete-member=<?= $member['member_id'] ?>"
+                          class="delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" data-id="<?= $member['member_id'] ?>" onclick="return confirm('Apakah anda Yakin?')">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </a>
+                        <button
+                          class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white transition-all"
+                          title="Nonaktifkan">
+                          <i data-lucide="user-minus" class="w-4 h-4"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -733,7 +850,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
             <i data-lucide="user-plus" class="w-5 h-5 text-primary"></i>
             Data Akun
           </h3>
-          <form method="POST" id="edit" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <form method="POST" id="edit-user" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <input type="hidden" id="id" name="id" value="<?= $editUser['id'] ?? '' ?>">
             <div class="space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama</label>
@@ -777,7 +894,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
                 type="submit"
                 name="simpan"
                 class="bg-info text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm h-fit mb-0.5">
-                Simpan
+                Update Akun
               </button>
             </div>
           </form>
@@ -1127,28 +1244,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
         event.preventDefault();
         const action = this.dataset.action;
         if (action === 'edit-user') {
-          document.getElementById('id').value =
-            this.dataset.id;
-          document.getElementById('username').value =
-            this.dataset.name;
-          document.getElementById('email').value =
-            this.dataset.email;
-          document.getElementById('full_name').value =
-            this.dataset.fullname;
-          document.getElementById('role').value =
-            this.dataset.role;
+          document.getElementById('id').value = this.dataset.id;
+          document.getElementById('username').value = this.dataset.name;
+          document.getElementById('email').value = this.dataset.email;
+          document.getElementById('full_name').value = this.dataset.fullname;
+          document.getElementById('role').value = this.dataset.role;
         }
         if (action === 'edit-buku') {
-          document.querySelector('#id').value = this.dataset.id;
-          document.querySelector('#title').value = this.dataset.title;
-          document.querySelector('#author').value = this.dataset.author;
-          document.querySelector('#publisher').value = this.dataset.publisher;
-          document.querySelector('#stock').value = this.dataset.stock;
-          document.querySelector('#description').value = this.dataset.description;
-          document.querySelector('#location').value = this.dataset.location;
-          document.querySelector('#year').value = this.dataset.year;
-          document.querySelector('#mode-editBook').value = 'edit';
-          document.querySelector('#btn-submit').textContent = 'Update';
+          document.getElementById('id').value = this.dataset.id;
+          document.getElementById('title').value = this.dataset.title;
+          document.getElementById('author').value = this.dataset.author;
+          document.getElementById('publisher').value = this.dataset.publisher;
+          document.getElementById('stock').value = this.dataset.stock;
+          document.getElementById('description').value = this.dataset.description;
+          document.getElementById('location').value = this.dataset.location;
+          document.getElementById('year').value = this.dataset.year;
+          document.getElementById('mode-editBook').value = 'edit';
+          document.getElementById('btn-submit').textContent = 'Update';
+        }
+        if (action === 'edit-member') {
+          document.getElementById('id').value = this.dataset.id;
+          document.getElementById('member_code').value = this.dataset.member_code;
+          document.getElementById('name').value = this.dataset.name;
+          document.getElementById('email').value = this.dataset.email;
+          document.getElementById('is_active').value = this.dataset.isactive;
         }
       });
     });

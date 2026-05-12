@@ -35,7 +35,7 @@ CREATE TABLE books (
     year INTEGER,
     image_url TEXT,
     category_id INTEGER REFERENCES kategories(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description VARCHAR(255),
 );
 
