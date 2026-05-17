@@ -4,7 +4,7 @@ require_once  '../config/database.php';
 require_once '../functions/helper.php';
 
 if (isLogin()) {
-  redirect('index.php');
+  redirect('../index.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       // user baru
       $password = md5($password_raw);
       query("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)", [$username, $email, $full_name, $password]);
-      redirect('login.php#login');
       // ambil user baru
       $user = fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
       // member role
@@ -33,19 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['user_id'] = $user['id'];
       $_SESSION['email'] = $user['email'];
       $_SESSION['password'] = $user['password'];
+      redirect('../public/login.php#login');
     }
   } elseif (isset($_POST['login-button'])) {
     // Handle login
     $email = $_POST['login-email'];
     $password = md5($_POST['login-password']);
-
     $user = fetchOne("SELECT * FROM users WHERE email = ? AND password = ?", [$email, $password]);
-
     if ($user) {
       // Set session and redirect
       $_SESSION['user_id'] = $user['id'];
       $_SESSION['email'] = $user['email'];
-      $_SESSION['password'] = $user['password'];
+      $_SESSION['role'] = $user['role'];
       redirect('../index.php');
     } else {
       echo "<script>alert('Email atau password salah!');</script>";

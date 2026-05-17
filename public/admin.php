@@ -3,20 +3,39 @@ session_start();
 require_once '../config/database.php';
 require_once '../functions/helper.php';
 
-
-// if (!isLogin()) {
-//   redirect('login.php');
-// }
+if (!isLogin()) {
+  redirect('login.php');
+}
 
 $flash = getFlash();
+$totalLateDays = 0;
 $noBook = 1;
 $noUser = 1;
 $noMember = 1;
+$noPinjam = 1;
+$noDenda = 1;
+$noLaporan = 1;
+
 
 // Dashboard
 $totalbooks = fetchOne("SELECT COUNT(*) as total FROM books")['total'];
 $totalMembers = fetchOne("SELECT COUNT(*) as total FROM users WHERE role = 'user'")['total'];
-// $booksBorrowed = fetchOne("SELECT COUNT(*) as total FROM bookd WHERE role = 'user'")['total'];
+$totalDipinjam = fetchOne("SELECT COUNT(*) as total FROM loans WHERE status = 'dipinjam'")['total'];
+$totalFine = fetchOne("
+    SELECT COALESCE(SUM(fine), 0) as total
+    FROM loans
+")['total'];
+$fineMember = fetchAll("
+    SELECT
+        members.id,
+        members.name,
+        COALESCE(SUM(loans.fine), 0) as total_fine
+    FROM members
+    LEFT JOIN loans ON loans.member_id = members.id
+    GROUP BY members.id, members.name
+    ORDER BY members.name ASC
+");
+$image = getImage();
 
 
 // Logic Buku
@@ -28,47 +47,22 @@ if (isset($_GET['delete-buku'])) {
   setFlash('success', 'Buku berhasil dihapus!');
   redirect('admin.php');
 }
-// Edit + Tambah buku
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  if ($_POST['mode-editBook'] == 'edit') {
-    query(
-      "UPDATE books SET title=?, author=?, publisher=?, stock=?, location=?, year=?, description=? WHERE id=?",
-      [
-        $_POST['title'],
-        $_POST['author'],
-        $_POST['publisher'],
-        $_POST['stock'],
-        $_POST['location'],
-        $_POST['year'],
-        $_POST['description'],
-        $_POST['id']
-      ]
-    );
-    setFlash('success', 'Buku berhasil diupdate!');
-  } else {
-    query(
-      "INSERT INTO books (title, author, publisher, stock, location, year, description) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [
-        $_POST['title'],
-        $_POST['author'],
-        $_POST['publisher'],
-        $_POST['stock'] ?? 1,
-        $_POST['location'],
-        $_POST['year'] ?? null,
-        $_POST['description']
-      ]
-    );
-    setFlash('success', 'Buku berhasil ditambah!');
-  }
-  redirect('admin.php');
-}
-
 
 // Logic members
-$members = fetchAll("SELECT members.id AS member_id, members.user_id, members.member_code,
+$members = fetchAll("
+    SELECT
+        members.id AS member_id,
+        members.user_id,
+        members.member_code,
         members.name,
         users.email,
-        members.is_active FROM members JOIN users ON users.id = members.user_id WHERE users.role = 'user' ORDER BY members.id DESC");
+        members.is_active
+    FROM members
+    JOIN users ON users.id = members.user_id
+    WHERE users.role = 'user'
+    ORDER BY members.id DESC
+");
+
 //hapus member
 if (isset($_GET['delete-member'])) {
   $member = fetchOne("SELECT user_id FROM members WHERE id = ?", [$_GET['delete-member']]);
@@ -89,25 +83,49 @@ if (isset($_GET['delete'])) {
   setFlash('success', 'User berhasil dihapus!');
   redirect('admin.php');
 }
-// edit user
-// if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
-//   query(
-//     "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
-//     [
-//       $_POST['username'],
-//       $_POST['email'],
-//       $_POST['full_name'],
-//       $_POST['role'],
-//       $_POST['id']
-//     ]
-//   );
-//   setFlash('success', 'User berhasil diupdate!');
-//   redirect('admin.php');
-// }
+
+//logic loans
+$loans = fetchAll("SELECT loans.*, books.title, members.name AS member_name FROM loans JOIN books ON loans.book_id= books.id JOIN members ON loans.member_id = members.id ORDER BY loans.id DESC");
+
+$settingFine = getFinePerDay();
+
+// logic CRUD user, buku, member
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  if (isset($_POST['simpan'])) {
+  if (isset($_POST['simpan-buku'])) {
+    if ($_POST['mode-editBook'] == 'edit') {
+      query(
+        "UPDATE books SET title=?, author=?, publisher=?, stock=?, location=?, year=?, description=? WHERE id=?",
+        [
+          $_POST['title'],
+          $_POST['author'],
+          $_POST['publisher'],
+          $_POST['stock'],
+          $_POST['location'],
+          $_POST['year'],
+          $_POST['description'],
+          $_POST['id']
+        ]
+      );
+      setFlash('success', 'Buku berhasil diupdate!');
+    } else {
+      query(
+        "INSERT INTO books (title, author, publisher, stock, location, year, image_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          $_POST['title'],
+          $_POST['author'],
+          $_POST['publisher'],
+          $_POST['stock'] ?? 1,
+          $_POST['location'],
+          $_POST['year'] ?? null,
+          $image,
+          $_POST['description']
+        ]
+      );
+      setFlash('success', 'Buku berhasil ditambah!');
+    }
+  } elseif (isset($_POST['simpan-user'])) {
     query(
-      "UPDATE users SET username=?, email=?, full_name=?, role=? WHERE id=?",
+      "UPDATE users SET username=?, email=?, name=?, role=? WHERE id=?",
       [
         $_POST['username'],
         $_POST['email'],
@@ -128,20 +146,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       ]
     );
     query(
-      "UPDATE users SET email=? WHERE id=?",
+      "UPDATE users SET email=?, username=? WHERE id=?",
       [
         $_POST['email'],
+        $_POST['name'],
         $_POST['user_id']
       ]
     );
     setFlash('success', 'Member berhasil diupdate!');
+  } elseif (isset($_POST['fine_per_day'])) {
+    query("UPDATE configDenda SET value = ? WHERE key = 'fine_per_day'", [$_POST['fine_per_day']]);
+    setFlash('success', 'Denda per Hari berhasil diperbarui!');
   }
   redirect('admin.php');
 }
 
 
-?>
 
+?>
 
 <!doctype html>
 <html lang="id">
@@ -155,6 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet" />
+
   <!-- Tailwind CSS v4 CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -211,6 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     .table-container::-webkit-scrollbar {
       height: 6px;
+      width: 6px;
     }
 
     .table-container::-webkit-scrollbar-track {
@@ -227,7 +251,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       color: white;
       box-shadow: 0 10px 15px -3px rgba(168, 110, 67, 0.2);
     }
+
+    .selesai {
+      text-decoration: line-through;
+      opacity: .5;
+    }
   </style>
+
 </head>
 
 <body class="bg-gray-50 text-gray-800">
@@ -274,7 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           <div
             class="absolute bottom-0 right-0 w-5 h-5 bg-success border-2 border-white rounded-full"></div>
         </div>
-        <h3 class="mt-4 font-bold text-gray-900 text-lg">Super Admin</h3>
+        <h3 class="mt-4 font-bold text-gray-900 text-lg">Admin</h3>
         <p class="text-gray-500 text-sm font-medium">Administrator</p>
       </div>
 
@@ -413,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               class="bg-amber-50 text-amber-600 p-3 rounded-2xl w-fit mb-4 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
               <i data-lucide="book-open-check" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-3xl font-black text-gray-900 mb-1">42</h2>
+            <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalDipinjam ?></h2>
             <p class="text-gray-500 text-sm font-semibold">
               Buku Sedang Dipinjam
             </p>
@@ -425,7 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               class="bg-success/10 text-success p-3 rounded-2xl w-fit mb-4 group-hover:bg-success group-hover:text-white transition-colors duration-300">
               <i data-lucide="banknote" class="w-6 h-6"></i>
             </div>
-            <h2 class="text-3xl font-black text-gray-900 mb-1">Rp 450k</h2>
+            <h2 class="text-3xl font-black text-gray-900 mb-1"><?= formatRupiah($totalFine) ?></h2>
             <p class="text-gray-500 text-sm font-semibold">
               Total Pendapatan Denda
             </p>
@@ -535,6 +565,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <button
               type="submit"
+              name="simpan-buku"
               id="btn-submit"
               class="bg-info text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm">
               Simpan
@@ -544,9 +575,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <!-- Tabel Buku -->
         <div
-          class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse overflow-scroll">
+          class="bg-white rounded-[2rem] shadow-sm border border-gray-100">
+          <div class="table-container  h-[500px] overflow-y-auto overflow-x-auto no-scrollbar">
+            <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-gray-50/50">
                   <th
@@ -715,7 +746,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             Data Member
           </h3>
           <form method="POST" id="edit-member" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <input type="hidden" id="id" name="id" value="<?= $editMember['member_id'] ?? '' ?>">
+            <input type="hidden" id="id-member" name="member_id" value="<?= $editMember['member_id'] ?? '' ?>">
+            <input type="hidden" name="user_id" id="user-id">
             <div class="space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Kode Member</label>
               <input
@@ -727,7 +759,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-primary transition-all text-sm" />
             </div>
             <div class="space-y-1">
-              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama Lengkap</label>
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama</label>
               <input
                 type="text"
                 id="name"
@@ -767,71 +799,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50/50">
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Kode Member
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Nama
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <?php foreach ($members as $member): ?>
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noMember++ ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900">
-                      <?= $member['member_code'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600"><?= $member['name'] ?></td>
-                    <td class="px-8 py-5 text-gray-600"><?= $member['email'] ?></td>
-                    <td class="px-8 py-5">
-                      <span
-                        class="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-bold border border-success/20"><?= $member['is_active'] ? 'Aktif' : 'Tidak Aktif' ?></span>
-                    </td>
-                    <td class="px-8 py-5">
-                      <div class="flex items-center justify-center gap-3">
-                        <a href="#"
-                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-member" data-id='<?= $member['member_id'] ?>' data-member_code='<?= $member['member_code'] ?>' data-name='<?= $member['name'] ?>' data-email='<?= $member['email'] ?>' data-isactive="<?= htmlspecialchars($member['is_active']) ?>">
-                          <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </a>
-                        <a href="?delete-member=<?= $member['member_id'] ?>"
-                          class="delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" data-id="<?= $member['member_id'] ?>" onclick="return confirm('Apakah anda Yakin?')">
-                          <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </a>
-                        <button
-                          class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white transition-all"
-                          title="Nonaktifkan">
-                          <i data-lucide="user-minus" class="w-4 h-4"></i>
-                        </button>
-                      </div>
-                    </td>
+          <?php if (count($members) > 0) : ?>
+            <div class="table-container overflow-x-auto no-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      No
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Kode Member
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Nama
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                      Aksi
+                    </th>
                   </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <?php foreach ($members as $member): ?>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                      <td class="px-8 py-5 font-medium text-gray-600"><?= $noMember++ ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900">
+                        MBR-<?= str_pad($member['user_id'], 3, '0', STR_PAD_LEFT) ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600"><?= $member['name'] ?></td>
+                      <td class="px-8 py-5 text-gray-600"><?= $member['email'] ?></td>
+                      <td class="px-8 py-5">
+                        <span
+                          class="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-bold border border-success/20">Aktif</span>
+                      </td>
+                      <td class="px-8 py-5">
+                        <div class="flex items-center justify-center gap-3">
+                          <a href="#"
+                            class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-member" data-user-id="<?= $member['user_id'] ?>" data-member_code='<?= $member['member_code'] ?>' data-name='<?= $member['name'] ?>' data-email='<?= $member['email'] ?>'>
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                          </a>
+                          <a href="?delete-member=<?= $member['user_id'] ?>"
+                            class="delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" onclick="return confirm('Apakah anda Yakin?')">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </a>
+                          <button
+                            class="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-600 hover:text-white transition-all"
+                            title="Nonaktifkan">
+                            <i data-lucide="user-minus" class="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else : ?>
+            <div class="col-span-full text-center py-20">
+              <h4 class="text-slate-500 text-lg font-medium">
+                Tidak ada member ditemukan.
+              </h4>
+            </div>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -851,7 +891,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             Data Akun
           </h3>
           <form method="POST" id="edit-user" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <input type="hidden" id="id" name="id" value="<?= $editUser['id'] ?? '' ?>">
+            <input type="hidden" id="id-user" name="user_id" value="<?= $editUser['id'] ?? '' ?>">
             <div class="space-y-1">
               <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nama</label>
               <input
@@ -892,7 +932,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="flex gap-2 items-end">
               <button
                 type="submit"
-                name="simpan"
+                name="simpan-user"
                 class="bg-info text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-info/20 hover:scale-105 active:scale-95 transition-all text-sm h-fit mb-0.5">
                 Update Akun
               </button>
@@ -997,36 +1037,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Tanggal Pinjam
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Batas Pinjam
+                  </th>
+                  <th
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Tanggal Kembali
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
+                    Status
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                  <td class="px-8 py-5 font-bold text-gray-900">
-                    Akhmad Fauzi
-                  </td>
-                  <td class="px-8 py-5 text-gray-600 font-semibold">
-                    The Midnight Library
-                  </td>
-                  <td class="px-8 py-5 text-gray-600 font-bold">
-                    12 Mei 2026
-                  </td>
-                  <td class="px-8 py-5">
-                    <div class="flex items-center justify-center">
-                      <button
-                        class="flex items-center gap-2 bg-success text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-success/20 hover:scale-105 active:scale-95 transition-all">
-                        <i data-lucide="check" class="w-4 h-4"></i>
-                        Konfirmasi Kembali
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <?php foreach ($loans as $loan): ?>
+                  <?php $badge = loanStatus($loan) ?>
+                  <tr class="hover:bg-gray-50 transition-colors" id="loan-<?= $loan['id'] ?>">
+                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noPinjam++ ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900 <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
+                      <?= $loan['member_name'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600 font-semibold <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
+                      <?= $loan['title'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600 font-bold ">
+                      <?= $loan['loan_date'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600 font-bold ">
+                      <?= $loan['due_date'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600 font-bold">
+                      <?= $loan['return_date'] ?? '-' ?>
+                    </td>
+                    </td>
+                    <td class="px-8 py-5">
+                      <div class="block">
+                        <span class="px-4 py-1.5 rounded-full text-xs font-bold <?= $badge['class'] ?>"><?= $badge['status'] ?></span>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -1061,35 +1115,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     Judul Buku
                   </th>
                   <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                    Denda
+                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Telat
                   </th>
                   <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
+                    Denda
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                  <td class="px-8 py-5 font-bold text-gray-900">
-                    Akhmad Fauzi
-                  </td>
-                  <td class="px-8 py-5 text-gray-600">Sapiens</td>
-                  <td class="px-8 py-5 text-right font-black text-danger">
-                    Rp 15.000
-                  </td>
-                  <td class="px-8 py-5">
-                    <div class="flex items-center justify-center">
-                      <button
-                        class="flex items-center gap-2 bg-success text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-success/20 hover:scale-105 active:scale-95 transition-all">
-                        <i data-lucide="check-circle" class="w-4 h-4"></i>
-                        Lunas
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <?php foreach ($loans as $loan) : ?>
+                  <?php
+                  $lateDays = calculateLateDays(
+                    $loan['due_date']
+                  );
+                  $fine = $settingFine * $lateDays;
+                  ?>
+                  <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                    <td class="px-8 py-5 font-bold text-gray-900"><?= $noDenda++ ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['member_name'] ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['title'] ?></td>
+                    <td class="px-8 py-5 text-gray-600"><?= $lateDays ?> Hari</td>
+                    <td class="px-8 py-5 font-bold text-red-600 text-center"><?= formatRupiah($fine) ?></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -1145,38 +1195,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     Tanggal
                   </th>
                   <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                    Denda
-                  </th>
-                  <th
                     class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
                     Aksi
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                  <td class="px-8 py-5 font-bold text-gray-900">
-                    Akhmad Fauzi
-                  </td>
-                  <td class="px-8 py-5 text-gray-600">
-                    The Psychology of Money
-                  </td>
-                  <td class="px-8 py-5 text-gray-600">01/05/2026</td>
-                  <td class="px-8 py-5 text-right font-bold text-gray-600">
-                    Rp 0
-                  </td>
-                  <td class="px-8 py-5">
-                    <div class="flex items-center justify-center">
-                      <button
-                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Hapus">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <?php foreach ($loans as $loan) : ?>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noLaporan++ ?></td>
+                    <td class="px-8 py-5 font-bold text-gray-900">
+                      <?= $loan['member_name'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600">
+                      <?= $loan['title'] ?>
+                    </td>
+                    <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
+                    <td class="px-8 py-5">
+                      <div class="flex items-center justify-center">
+                        <button
+                          class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Hapus">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -1199,16 +1244,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             Konfigurasi Denda
           </h3>
           <div class="space-y-6">
+            <form method="POST">
             <div class="space-y-2">
               <label
                 class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Besaran Denda Per Hari (Rp)</label>
               <div class="relative">
-                <span
-                  class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">Rp</span>
                 <input
                   type="number"
-                  value="5000"
-                  class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-lg font-bold" />
+                  value="<?= $settingFine ?>"
+                  name="fine_per_day"
+                  class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-lg font-bold"/>
               </div>
               <p class="text-xs text-gray-500 ml-1 italic">
                 *Denda akan otomatis dihitung saat buku melewati batas tanggal
@@ -1218,12 +1263,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div class="pt-4">
               <button
-                type="button"
+                type="submit"
                 class="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all tracking-widest">
                 SIMPAN PERUBAHAN
               </button>
             </div>
           </div>
+          </form>
         </div>
       </section>
     </main>
@@ -1244,30 +1290,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         event.preventDefault();
         const action = this.dataset.action;
         if (action === 'edit-user') {
-          document.getElementById('id').value = this.dataset.id;
-          document.getElementById('username').value = this.dataset.name;
-          document.getElementById('email').value = this.dataset.email;
-          document.getElementById('full_name').value = this.dataset.fullname;
-          document.getElementById('role').value = this.dataset.role;
+          document.querySelector('#id-user').value = this.dataset.id;
+          document.querySelector('#username').value = this.dataset.name;
+          document.querySelector('#email').value = this.dataset.email;
+          document.querySelector('#full_name').value = this.dataset.fullname;
+          document.querySelector('#role').value = this.dataset.role;
         }
         if (action === 'edit-buku') {
-          document.getElementById('id').value = this.dataset.id;
-          document.getElementById('title').value = this.dataset.title;
-          document.getElementById('author').value = this.dataset.author;
-          document.getElementById('publisher').value = this.dataset.publisher;
-          document.getElementById('stock').value = this.dataset.stock;
-          document.getElementById('description').value = this.dataset.description;
-          document.getElementById('location').value = this.dataset.location;
-          document.getElementById('year').value = this.dataset.year;
-          document.getElementById('mode-editBook').value = 'edit';
-          document.getElementById('btn-submit').textContent = 'Update';
+          document.querySelector('#id').value = this.dataset.id;
+          document.querySelector('#title').value = this.dataset.title;
+          document.querySelector('#author').value = this.dataset.author;
+          document.querySelector('#publisher').value = this.dataset.publisher;
+          document.querySelector('#stock').value = this.dataset.stock;
+          document.querySelector('#description').value = this.dataset.description;
+          document.querySelector('#location').value = this.dataset.location;
+          document.querySelector('#year').value = this.dataset.year;
+          document.querySelector('#mode-editBook').value = 'edit';
+          document.querySelector('#btn-submit').textContent = 'Update';
         }
         if (action === 'edit-member') {
-          document.getElementById('id').value = this.dataset.id;
-          document.getElementById('member_code').value = this.dataset.member_code;
-          document.getElementById('name').value = this.dataset.name;
-          document.getElementById('email').value = this.dataset.email;
-          document.getElementById('is_active').value = this.dataset.isactive;
+          document.querySelector('#id-member').value = this.dataset.memberId;
+          document.querySelector('#user-id').value = this.dataset.userId;
+          document.querySelector('#member_code').value = this.dataset.member_code;
+          document.querySelector('#name').value = this.dataset.name;
+          document.querySelector('#email').value = this.dataset.email;
         }
       });
     });
@@ -1313,10 +1359,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         toggleSidebar();
       }
       // scroll top
-      document.querySelector("main").scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+      const main = document.querySelector("main");
+      if (main) {
+        main.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
     }
     navLinks.forEach((link) => {
       link.addEventListener("click", () => {
@@ -1328,6 +1377,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       const savedTab = localStorage.getItem("activeTab") || "dashboard";
       showTab(savedTab);
       document.body.classList.add("ready");
+
     });
   </script>
 </body>

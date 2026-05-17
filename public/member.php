@@ -1,3 +1,115 @@
+<?php
+session_start();
+require_once  '../config/database.php';
+require_once '../functions/helper.php';
+
+
+$flash = getFlash();
+$isLogin = isLogin();
+$totalFine = 0; 
+$totalLateDays = 0;
+$noBuku = 1;
+$noDenda = 1;
+$noPinjam = 1;
+$noRiwayat = 1; 
+$settingFine = getFinePerDay();
+$totalFine = updateAllFines();
+
+//ambil session user login
+if ($isLogin) {
+    $member = fetchOne(
+        "SELECT * FROM members WHERE user_id = ?",
+        [$_SESSION['user_id']]
+    );
+}
+$member_id = $member['id'];
+
+$totalLoans = fetchOne("SELECT COUNT(*) as total FROM loans")['total'];
+$totalDipinjam = fetchOne(
+    "SELECT COUNT(*) as total
+     FROM loans
+     WHERE member_id = ?
+     AND status = 'dipinjam'",
+    [$member['id']]
+)['total'];
+$totalKembali = fetchOne(
+    "SELECT COUNT(*) as total
+     FROM loans
+     WHERE member_id = ?
+     AND status = 'dikembalikan'",
+    [$member['id']]
+)['total'];
+$totalFine = fetchOne("
+    SELECT COALESCE(SUM(fine), 0) as total
+    FROM loans
+    WHERE fine_paid = false
+")['total'];
+
+
+$loans = fetchAll(
+    "SELECT
+        loans.*,
+        books.title,
+        books.author,
+        books.publisher,
+        books.year
+     FROM loans
+     JOIN books ON books.id = loans.book_id
+     WHERE loans.member_id = ?
+     ORDER BY loans.id DESC",
+    [$member_id]
+);
+
+// khusus logic denda
+$loansDenda = fetchAll("
+    SELECT loans.*, books.title, members.name
+    FROM loans
+    JOIN books ON books.id = loans.book_id
+    JOIN members ON members.id = loans.member_id
+    WHERE loans.fine_paid = false
+    AND loans.due_date < CURRENT_DATE
+");
+
+$lateTotal = count($loansDenda);
+
+
+$activities = fetchAll(
+    "SELECT
+        loans.*,
+        books.image_url,
+        books.title
+     FROM loans
+     JOIN books ON books.id = loans.book_id
+     WHERE loans.member_id = ?
+     ORDER BY loans.id DESC
+     LIMIT 5",
+    [$member_id]
+);
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if ((isset($_POST['kembalikan']))) {
+        $id = $_POST['id'];
+        $loan_id = $_POST['loan_id'];
+        $book_id = $_POST['book_id'];
+        query("UPDATE loans SET status= 'dikembalikan', return_date= CURRENT_DATE WHERE id=?", [$loan_id]);
+        query("UPDATE books SET stock = stock + 1 WHERE id=?", [$book_id]);
+        setFlash('success', 'Update buku berhasil!');
+    } elseif (isset($_POST['pay_fine'])) {
+        $member_id = $_POST['member_id'];
+        // ambil data loan unutk 1 member
+        query("UPDATE loans SET fine = 0, fine_paid = true WHERE member_id = ?
+        AND fine > 0
+    ", [$member_id]);
+        setFlash('success', 'Denda berhasil dibayar');
+    }
+    redirect('member.php');
+}
+
+
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -56,7 +168,7 @@
             }
         }
 
-        /* Custom scrollbar for tables */
+        /* Custom scrollbar  */
         .table-container::-webkit-scrollbar {
             height: 6px;
         }
@@ -68,6 +180,11 @@
         .table-container::-webkit-scrollbar-thumb {
             background: #A86E43;
             border-radius: 10px;
+        }
+
+        .selesai {
+            text-decoration: line-through;
+            opacity: .5;
         }
     </style>
 </head>
@@ -107,13 +224,13 @@
                     </div>
                     <div class="absolute bottom-0 right-0 w-5 h-5 bg-success border-2 border-white rounded-full"></div>
                 </div>
-                <h3 class="mt-4 font-bold text-gray-900 text-lg">Akhmad Fauzi</h3>
-                <p class="text-gray-500 text-sm font-medium">Member Premium</p>
+                <h3 class="mt-4 font-bold text-gray-900 text-lg"><?= $member['name'] ?></h3>
+                <p class="text-gray-500 text-sm font-medium">Member <?= $member['member_code'] ?></p>
             </div>
 
             <!-- Navigation Links -->
             <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-                <button data-target="dashboard" class="nav-link active w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all duration-300 group">
+                <button data-target="dashboard" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-gray-600 hover:bg-primary/5 hover:text-primary transition-all duration-300 group">
                     <i data-lucide="layout-dashboard" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
                     <span class="font-semibold">Dashboard</span>
                 </button>
@@ -179,7 +296,7 @@
                             </div>
                             <span class="text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full">Semua</span>
                         </div>
-                        <h2 class="text-3xl font-black text-gray-900 mb-1">24</h2>
+                        <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalLoans ?></h2>
                         <p class="text-gray-500 text-sm font-semibold">Total Semua Buku</p>
                     </div>
                     <!-- Card 2 -->
@@ -190,7 +307,7 @@
                             </div>
                             <span class="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-full">Aktif</span>
                         </div>
-                        <h2 class="text-3xl font-black text-gray-900 mb-1">3</h2>
+                        <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalDipinjam ?></h2>
                         <p class="text-gray-500 text-sm font-semibold">Buku Dipinjam</p>
                     </div>
                     <!-- Card 3 -->
@@ -201,7 +318,7 @@
                             </div>
                             <span class="text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded-full">Denda</span>
                         </div>
-                        <h2 class="text-3xl font-black text-gray-900 mb-1">Rp 0</h2>
+                        <h2 class="text-3xl font-black text-gray-900 mb-1"><?= formatRupiah($totalFine) ?></h2>
                         <p class="text-gray-500 text-sm font-semibold">Total Denda</p>
                     </div>
                     <!-- Card 4 -->
@@ -212,7 +329,7 @@
                             </div>
                             <span class="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full">Selesai</span>
                         </div>
-                        <h2 class="text-3xl font-black text-gray-900 mb-1">21</h2>
+                        <h2 class="text-3xl font-black text-gray-900 mb-1"><?= $totalKembali ?></h2>
                         <p class="text-gray-500 text-sm font-semibold">Buku Dikembalikan</p>
                     </div>
                 </div>
@@ -224,31 +341,32 @@
                         <button class="text-primary font-bold text-sm hover:underline">Lihat Semua</button>
                     </div>
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=100" class="w-full h-full object-cover">
+                        <?php if (count($activities) > 0) : ?>
+                            <?php foreach ($activities as $activity) : ?>
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                                            <img
+                                                src="<?= $activity['image_url'] ? $activity['image_url'] : '../images/foto7.jpeg' ?>"
+                                                alt="<?= $activity['title'] ?>"
+                                                class="w-full h-full object-cover">
+                                        </div>
+                                        <div>
+                                            <h6 class="font-bold text-gray-800"><?= $activity['title'] ?></h6>
+                                            <p class="text-xs text-gray-500"><?= loanActivity($activity) ?></p>
+                                        </div>
+                                    </div>
+                                    <span class="px-4 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100"><?= $activity['status'] ?></span>
                                 </div>
-                                <div>
-                                    <h6 class="font-bold text-gray-800">The Midnight Library</h6>
-                                    <p class="text-xs text-gray-500">Dipinjam 2 hari yang lalu</p>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">Dipinjam</span>
-                        </div>
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=100" class="w-full h-full object-cover">
-                                </div>
-                                <div>
-                                    <h6 class="font-bold text-gray-800">Atomic Habits</h6>
-                                    <p class="text-xs text-gray-500">Dikembalikan kemarin</p>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Selesai</span>
-                        </div>
+                            <?php endforeach; ?>
                     </div>
+                <?php else : ?>
+                    <div class="col-span-full text-center py-20">
+                        <h4 class="text-slate-500 text-lg font-medium">
+                            Tidak ada Aktivitas Terakhir!.
+                        </h4>
+                    </div>
+                <?php endif; ?>
                 </div>
             </section>
 
@@ -256,52 +374,44 @@
             <section id="daftar-buku" class="content-section content-fade hidden">
                 <header class="mb-10">
                     <h5 class="text-2xl font-bold text-gray-900">Daftar Buku</h5>
-                    <p class="text-gray-500 mt-1">Semua koleksi buku yang tersedia dan pernah Anda pinjam.</p>
+                    <p class="text-gray-500 mt-1">Semua koleksi buku yang pernah di pinjam.</p>
                 </header>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="table-container overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/50">
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">The Psychology of Money</td>
-                                    <td class="px-8 py-5 text-gray-600">01 Mei 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">08 Mei 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-amber-50 text-amber-600 rounded-full text-xs font-bold border border-amber-100">Dipinjam</span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">02</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">Atomic Habits</td>
-                                    <td class="px-8 py-5 text-gray-600">20 Apr 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">27 Apr 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold border border-green-100">Dikembalikan</span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">03</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">Sapiens</td>
-                                    <td class="px-8 py-5 text-gray-600">10 Apr 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">17 Apr 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-100">Telat</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <?php if (count($loans) > 0) : ?>
+                        <div class="table-container overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50">
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Penulis</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Penerbit</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tanggal Pinjam</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tahun Terbit</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <?php foreach ($loans as $loan) : ?>
+                                        <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                                            <td class="px-8 py-5 font-medium text-gray-600"><?= $noBuku++ ?></td>
+                                            <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['title'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['author'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['publisher'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['year'] ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else : ?>
+                        <div class="col-span-full text-center py-20">
+                            <h4 class="text-slate-500 text-lg font-medium">
+                                Tidak ada buku ditemukan.
+                            </h4>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </section>
 
@@ -313,52 +423,55 @@
                 </header>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="table-container overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/50">
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">The Psychology of Money</td>
-                                    <td class="px-8 py-5 text-gray-600">01 Mei 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">08 Mei 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-amber-50 text-amber-600 rounded-full text-xs font-bold border border-amber-100">Dipinjam</span>
-                                    </td>
-                                    <td class="px-8 py-5">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button class="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">Kembalikan</button>
-                                            <button class="bg-danger text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-danger/20 hover:scale-105 active:scale-95 transition-all">Bayar Denda</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">02</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">Man's Search for Meaning</td>
-                                    <td class="px-8 py-5 text-gray-600">27 Apr 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">04 Mei 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-100">Telat</span>
-                                    </td>
-                                    <td class="px-8 py-5">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button class="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">Kembalikan</button>
-                                            <button class="bg-danger text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-danger/20 hover:scale-105 active:scale-95 transition-all">Bayar Denda</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <?php if (count($loans) > 0) : ?>
+                        <div class="table-container overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50">
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Batas Pinjam</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <?php foreach ($loans as $loan) : ?>
+                                        <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                                            <td class="px-8 py-5 font-medium text-gray-600"><?= $noPinjam++ ?></td>
+                                            <td class="px-8 py-5 font-bold text-gray-900<?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?> "><?= $loan['title'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['return_date'] ?></td>
+                                            <td class="px-8 py-5">
+                                                <span class="px-2 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-100"><?= $loan['due_date'] ?></span>
+                                            </td>
+                                            <td class="px-8 py-5">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <form method="POST">
+                                                        <input type="hidden" name="loan_id" value="<?= $loan['id'] ?>">
+                                                        <input type="hidden" name="book_id" value="<?= $loan['book_id'] ?>">
+                                                        <button type="submit" name="kembalikan"
+                                                            class="flex items-center gap-2 bg-success text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-success/20 hover:scale-105 active:scale-95 transition-all <?= $loan['status'] === 'dipinjam' ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>"
+                                                            <?= $loan['status'] !== 'dipinjam' ? 'disabled' : '' ?> data-id="<?= $loan['id'] ?>">
+                                                            <i data-lucide="check" class="w-4 h-4 rounded-full border border-slate-200"></i>
+                                                            <?= $loan['status'] !== 'dipinjam' ? 'Sudah Kembali' : 'Kembalikan' ?>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else : ?>
+                        <div class="col-span-full text-center py-20">
+                            <h4 class="text-slate-500 text-lg font-medium">
+                                Tidak ada Buku yang dipinjam.
+                            </h4>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </section>
 
@@ -370,42 +483,46 @@
                 </header>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="table-container overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50/50">
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Denda</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">01</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">Sapiens</td>
-                                    <td class="px-8 py-5 text-gray-600">10 Apr 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">17 Apr 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold border border-red-100">Telat</span>
-                                    </td>
-                                    <td class="px-8 py-5 font-bold text-red-600">Rp 20.000</td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                    <td class="px-8 py-5 font-medium text-gray-600">02</td>
-                                    <td class="px-8 py-5 font-bold text-gray-900">Thinking, Fast and Slow</td>
-                                    <td class="px-8 py-5 text-gray-600">03 Apr 2026</td>
-                                    <td class="px-8 py-5 text-gray-600">10 Apr 2026</td>
-                                    <td class="px-8 py-5">
-                                        <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold border border-green-100">Dikembalikan</span>
-                                    </td>
-                                    <td class="px-8 py-5 font-bold text-gray-400">Rp 0</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <?php if (count($loans) > 0) : ?>
+                        <div class="table-container overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50">
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul Buku</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Penulis</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Pinjam</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Tgl Kembali</th>
+                                        <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Status</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <?php foreach ($loans as $loan) : ?>
+                                        <?php
+                                        $badge = loanStatus($loan);
+                                        ?>
+                                        <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                                            <td class="px-8 py-5 font-medium text-gray-600"><?= $noRiwayat++ ?></td>
+                                            <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['title'] ?></td>
+                                            <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['author'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
+                                            <td class="px-8 py-5 text-gray-600"><?= $loan['return_date'] ?></td>
+                                            <td class="px-8 py-5">
+                                                <span class="px-4 py-1.5 rounded-full text-xs font-bold <?= $badge['class'] ?>"><?= $badge['status'] ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else : ?>
+                        <div class="col-span-full text-center py-20">
+                            <h4 class="text-slate-500 text-lg font-medium">
+                                Tidak ada Riwayat peminjaman buku.
+                            </h4>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </section>
 
@@ -418,42 +535,55 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2">
+                        <?php if (!empty($loans)) : ?>
                         <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="table-container overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-50/50">
-                                            <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul</th>
-                                            <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Telat</th>
-                                            <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Denda</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                            <td class="px-8 py-5 font-bold text-gray-900">Man's Search for Meaning</td>
-                                            <td class="px-8 py-5 text-gray-600">2 Hari</td>
-                                            <td class="px-8 py-5 font-bold text-red-600">Rp 20.000</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                                            <td class="px-8 py-5 font-bold text-gray-900">Sapiens</td>
-                                            <td class="px-8 py-5 text-gray-600">2 Hari</td>
-                                            <td class="px-8 py-5 font-bold text-red-600">Rp 20.000</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="table-container overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-gray-50/50">
+                                                <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">No</th>
+                                                <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Judul</th>
+                                                <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Telat</th>
+                                                <th class="px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider">Denda</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                        <?php foreach ($loansDenda as $loanDenda) : ?>
+                                                <?php
+                                                $lateDays = calculateLateDays(
+                                                    $loanDenda['due_date']
+                                                );
+                                                $fine = $settingFine * $lateDays;
+                                                ?>
+                                                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                                                    <td class="px-8 py-5 font-bold text-gray-900"><?= $noDenda++ ?></td>
+                                                    <td class="px-8 py-5 font-bold text-gray-900"><?= $loanDenda['title'] ?></td>
+                                                    <td class="px-8 py-5 text-gray-600"><?= $lateDays ?></td>
+                                                    <td class="px-8 py-5 font-bold text-red-600"><?= formatRupiah($fine) ?></td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php else : ?>
+                                    <div class="col-span-full text-center py-20">
+                                        <h4 class="text-slate-500 text-lg font-medium">
+                                            Tidak ada Denda yang dibayarkan.
+                                        </h4>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        </div>
                     </div>
 
                     <div class="lg:col-span-1">
                         <div class="bg-primary p-8 rounded-[2rem] text-white shadow-xl shadow-primary/20 flex flex-col justify-between min-h-[300px]">
                             <div>
                                 <h6 class="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">Total Akumulasi</h6>
-                                <h2 class="text-4xl font-black mb-6">Rp 40.000</h2>
+                                <h2 class="text-4xl font-black mb-6"><?= formatRupiah($totalFine) ?></h2>
                                 <div class="space-y-3">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-white/70">Total Item</span>
-                                        <span class="font-bold text-white">2 Buku</span>
+                                        <span class="font-bold text-white"><?= $lateTotal ?></span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-white/70">Biaya Admin</span>
@@ -462,7 +592,13 @@
                                     <div class="h-px bg-white/20 my-4"></div>
                                 </div>
                             </div>
-                            <button class="w-full bg-white text-primary py-4 rounded-2xl font-black hover:bg-opacity-90 active:scale-95 transition-all shadow-lg">BAYAR SEKARANG</button>
+                            <form method="POST" action="">
+                                <input type="hidden" name="member_id" value="<?= $member['id'] ?>">
+                                <button type="submit" name="pay_fine"
+                                    class="w-full bg-white text-primary py-4 rounded-2xl font-black hover:bg-opacity-90 active:scale-95 transition-all shadow-lg">
+                                    BAYAR SEKARANG
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -478,7 +614,7 @@
         // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Mobile Menu Toggle Logic
+        // Mobile Menu Toggle 
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
         const toggleBtn = document.getElementById('mobile-menu-toggle');

@@ -1,15 +1,10 @@
 <?php
 session_start();
-// var_dump($_SESSION);
-// die();
 require_once 'config/database.php';
 require_once 'functions/helper.php';
 
 $books = fetchAll("SELECT * FROM books WHERE stock > 0 ORDER BY id DESC");
-if ($books) {
-  $image = getImage($books['image_url']);
-  var_dump($image);
-}
+
 
 $carouselBooks = getCarouselBooks($pdo);
 $pagination = getPaginatedBooks();
@@ -18,6 +13,29 @@ $books = $pagination['data'];
 $isLogin = isLogin();
 $isAdmin = $isLogin ? isAdmin() : false;
 $link = $isLogin ? ($isAdmin ? 'public/admin.php' : 'public/member.php') : 'public/login.php';
+
+//ambil session user login
+if ($isLogin) {
+  $member = fetchOne(
+    "SELECT * FROM members WHERE user_id = ?",
+    [$_SESSION['user_id']]
+  );
+}
+// Logic Pinjam
+if (isset($_POST['pinjam'])) {
+  $book_id = $_POST['book_id'];
+  $member_id = $member['id'];
+  $book = fetchOne(
+    "SELECT stock FROM books WHERE id = ?",
+    [$book_id]
+  );
+  if ($book && $book['stock'] > 0) {
+    query("UPDATE books SET stock = stock - 1 WHERE id=?", [$book_id]);
+    query("INSERT INTO loans (book_id, member_id, loan_date, due_date, status) VALUES (?, ?, CURRENT_DATE, CURRENT_DATE + INTERVAL '7 days', 'dipinjam')", [$book_id, $member_id]);
+    redirect('index.php');
+  }
+}
+
 
 ?>
 
@@ -364,15 +382,13 @@ $link = $isLogin ? ($isAdmin ? 'public/admin.php' : 'public/member.php') : 'publ
       <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         <!-- Books will be injected here -->
         <?php if (count($books) > 0) : ?>
-          <?php foreach ($books as $book) :
-            $isLogin = isLogin();
+          <?php foreach ($books as $book) : ?>
+            <?php $isLogin = isLogin();
             $canBorrow = $isLogin && $book['stock'] > 0;
-            $isAvailable = $book['stock'] > 0;
-            $image = getImage($book['image_url']);
-          ?>
+            $isAvailable = $book['stock'] > 0; ?>
             <div class="group bg-white rounded-3xl overflow-hidden shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl border border-secondary/20 <?= !$isAvailable ? "opacity-70" : "" ?>">
               <div class="relative h-64 overflow-hidden">
-                <img src="<?= $image ?>" alt="<?= htmlspecialchars($book['title']) ?>"
+                <img src="<?= $book['image_url'] ? $book['image_url'] : 'images/foto15.jpeg' ?>" alt="<?= htmlspecialchars($book['title']) ?>"
                   class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                 <div class="absolute top-4 right-4">
                   <span class="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider <?= $isAvailable ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600" ?>">
@@ -396,27 +412,27 @@ $link = $isLogin ? ($isAdmin ? 'public/admin.php' : 'public/member.php') : 'publ
                 <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed">
                   <?= htmlspecialchars($book['description'] ?? 'Tidak ada deskripsi.') ?>
                 </p>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                  <button <?= !$canBorrow ? "disabled" : "" ?> type="button" class="py-2.5 rounded-xl font-bold text-sm transition-all <?= $canBorrow ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>">
+                <form method="POST" class="grid grid-cols-2 gap-3 pt-2">
+                  <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                  <input type="hidden" name="member_id" value="<?= $member['id'] ?>">
+                  <button <?= !$canBorrow ? "disabled" : "" ?> type="submit" name="pinjam" class="py-2.5 rounded-xl font-bold text-sm transition-all <?= $canBorrow ? "bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-200" : "border border-primary text-primary cursor-not-allowed opacity-60" ?>">
                     <?= !$isLogin
                       ? "Pinjam Buku"
                       : ($isAvailable ? "Pinjam Buku" : "Stok Habis")
                     ?>
                   </button>
-                  <button onclick='openModal(<?= json_encode($book) ?>)' class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
+                  <button type="button" onclick='openModal(<?= json_encode($book) ?>)' class="py-2.5 rounded-xl font-bold text-sm border border-secondary text-slate-600 text-center hover:bg-secondary/10 transition-all">
                     Detail
                   </button>
-                </div>
+                </form>
               </div>
             </div>
           <?php endforeach; ?>
         <?php else : ?>
           <div class="col-span-full text-center py-20">
-
             <h4 class="text-slate-500 text-lg font-medium">
               Tidak ada buku yang ditemukan.
             </h4>
-
           </div>
         <?php endif; ?>
       </div>
