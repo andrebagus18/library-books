@@ -34,9 +34,9 @@ CREATE TABLE books (
     location VARCHAR(50),
     year INTEGER,
     image_url TEXT,
-    category_id INTEGER REFERENCES kategories(id) ON DELETE CASCADE,
+    category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    description VARCHAR(255),
+    description VARCHAR(255)
 );
 
 --Tabel Kategori
@@ -60,53 +60,15 @@ CREATE TABLE loans (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table Config Denda
+CREATE TABLE configDenda (
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value VARCHAR(255) NOT NULL
+);
+
+INSERT INTO configDenda (key, value)
+VALUES ('fine_per_day', '5000');
+
 --DATA AWAL
 INSERT INTO users (username, email, password, full_name, role) VALUES 
 ('admin', 'admin@gmail.com', md5('admin123'), 'administrator', 'admin');
-
-INSERT INTO books (title, author, publisher, stock, location, year, image_url, category_id, description) VALUES 
-('The Art of Programming','John Doe','Tech Press', 5,'rak_B', 2021, 'foto1.jpeg', 1, 'Panduan lengkap untuk menguasai seni pemrograman modern.'),
-('Modern Web Design','Jane Smith','Creative Minds', 0, 'rak_A', 2022, 'foto2.jpeg', 1, 'Eksplorasi tren desain web terbaru untuk tahun 2022.'),
-('The Future of AI', 'Alan Turing', 'Future Books', 3, 'rak_C', 2023, 'foto3.jpeg', 1, 'Masa depan kecerdasan buatan dan dampaknya bagi manusia.'),
-('JavaScript Masterclass', 'Brendan Eich', 'JS Guru', 8, 'rak_D', 2020, 'foto4.jpeg', 1, 'Kuasai JavaScript dari dasar hingga tingkat lanjut.'),
-('UI/UX Essentials', 'Sarah Johnson', 'Design Co', 6, 'rak_C', 2021, 'foto5.jpeg', 3, 'Prinsip-prinsip penting dalam desain UI dan UX'),
-('The Digital Nomad','Chris Brown','Traveler Ink', 12, 'rak_B', 2019, 'foto6.jpeg', 3, 'Cara menjalani hidup sebagai nomad digital yang sukses.'),
-('Startup Secrets', 'Elon Musk', 'Innovation Press', 4, 'rak_A', 2023, 'foto7.jpeg', 2, 'Rahasia di balik kesuksesan startup raksasa.'),
-('Productivity Hacks', 'Tim Ferriss', 'Efficient Life', 0, 'rak_D', 2021, 'foto8.jpeg', 2, 'Tips praktis untuk meningkatkan produktivitas harian Anda.'),
-('Data Science 101', 'Andrew Ng', 'Code Academic', 7, 'rak_B', 2022, 'foto9.jpeg', 2, 'Langkah awal untuk memahami dunia data science.'),
-('Creative Writing', 'Ernest Hemingway', 'Lit Books', 15, 'rak_A', 2020, 'foto10.jpeg', 3, 'Teknik menulis kreatif dari sang legenda sastra.');
-
-INSERT INTO categories (name) VALUES 
-('progamming'),
-('data_science'),
-('UI/UX');
-
-
--- 1. Struktur link sidebar
--- <a href="#dashboard" class="nav-link">Dashboard</a>
--- <a href="#tambah" class="nav-link">Tambah Buku</a>
--- <a href="#riwayat" class="nav-link">Riwayat</a>
--- 2. JS untuk baca hash
--- function setActiveTab() {
-
---     const hash = window.location.hash || "#dashboard";
-
---     document.querySelectorAll('.tab-content')
---         .forEach(el => el.classList.add('hidden'));
-
---     document.querySelector(hash)
---         .classList.remove('hidden');
-
---     document.querySelectorAll('.nav-link')
---         .forEach(el => el.classList.remove('active'));
-
---     document.querySelector(`a[href="${hash}"]`)
---         ?.classList.add('active');
--- }
-
--- window.addEventListener('load', setActiveTab);
--- window.addEventListener('hashchange', setActiveTab);
--- 3. Tab content
--- <div id="dashboard" class="tab-content">...</div>
--- <div id="tambah" class="tab-content hidden">...</div>
--- <div id="riwayat" class="tab-content hidden">...</div>

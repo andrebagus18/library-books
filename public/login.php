@@ -389,7 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </div>
 
-    <!-- Floating Slide Button (Fixed in Center) -->
+    <!-- Floating Slide Button (Fixed Center) -->
     <button
       id="slide-trigger"
       onclick="toggleSlide()"
@@ -484,24 +484,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       input.type = isPassword ? "text" : "password";
       btn.classList.toggle("text-primary");
     }
-
-    // function handleLogin(e) {
-    //   e.preventDefault();
-    //   const email = document.getElementById("login-email").value;
-    //   const password = document.getElementById("login-password").value;
-    //   if (email === "admin@gmail.com" && password === "admin123") {
-    //     alert("Login berhasil! Selamat datang 👋");
-    //     window.location.href = "../index.php";
-    //   } else {
-    //     alert("Email atau password salah! Coba admin@libooks.com / admin123");
-    //   }
-    // }
-
-    // function handleRegister(e) {
-    //   e.preventDefault();
-    //   alert("Registrasi berhasil! Silakan login 🎉");
-    //   toggleSlide();
-    // }
   </script>
 </body>
 

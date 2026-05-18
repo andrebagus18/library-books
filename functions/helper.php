@@ -1,4 +1,5 @@
 <?php
+// random image
 function getImage()
 {
     $images = [
@@ -20,6 +21,7 @@ function getImage()
     return $images[array_rand($images)];
 }
 
+// pagination
 function getPaginatedBooks($limit = 6)
 {
     // 1. Ambil halaman dari URL
@@ -30,7 +32,6 @@ function getPaginatedBooks($limit = 6)
     // $search = "carian";
     $search = $_GET['search'] ?? '';
     $offset = ($page - 1) * $limit;
-
     $totalData = fetchOne(
         "
         SELECT COUNT(*) as total
@@ -62,30 +63,6 @@ function getPaginatedBooks($limit = 6)
     ];
 }
 
-function getCarouselBooks($pdo, $limit = 8)
-{
-    $stmt = $pdo->prepare("
-        SELECT
-            books.*,
-            categories.name AS category_name
-        FROM books
-        JOIN categories
-        ON books.category_id = categories.id
-        ORDER BY created_at DESC
-        LIMIT :limit
-    ");
-
-    $stmt->bindValue(
-        ':limit',
-        $limit,
-        PDO::PARAM_INT
-    );
-
-    $stmt->execute();
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
 function isLogin()
 {
     return isset($_SESSION['user_id']);
@@ -94,14 +71,6 @@ function isLogin()
 function isAdmin()
 {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
-}
-function adminName()
-{
-    return $_SESSION['username'] ?? '';
-}
-function adminFullName()
-{
-    return $_SESSION['full_name'] ?? '';
 }
 
 function redirect($url)
@@ -125,6 +94,7 @@ function getFlash()
     return null;
 }
 
+// calculate telat
 function calculateLateDays($due_date)
 {
     if (!$due_date) return 0;
@@ -137,6 +107,7 @@ function calculateLateDays($due_date)
     return (int)(($today - $due) / 86400);
 }
 
+// calculate denda
 function calculateFine($due_date)
 {
     $lateDays = calculateLateDays($due_date);
@@ -149,7 +120,7 @@ function getFinePerDay()
     return isset($setting['value']) ? (int)$setting['value'] : 0;
 }
 
-// membuat fungsi status dan badge warna berdasarkan status
+// function status dan badge warna berdasarkan status
 function loanStatus($loan)
 {
     $status = $loan['status'];
@@ -206,6 +177,7 @@ function formatRupiah($angka)
     return "Rp " . number_format($angka, 0, ',', '.');
 }
 
+// all denda
 function updateAllFines()
 {
     $finePerDay = getFinePerDay();

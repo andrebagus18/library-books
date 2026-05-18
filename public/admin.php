@@ -38,8 +38,8 @@ $fineMember = fetchAll("
 $image = getImage();
 
 
-// Logic Buku
 $books = fetchAll("SELECT * FROM books ORDER BY id DESC");
+// edit buku
 $editBook = isset($_GET['edit-buku']) ? fetchOne("SELECT * FROM books WHERE id = ?", [$_GET['edit-buku']]) : null;
 // Hapus buku
 if (isset($_GET['delete-buku'])) {
@@ -74,7 +74,7 @@ if (isset($_GET['delete-member'])) {
 // Edit member
 $editMember = isset($_GET['edit-member']) ? fetchOne("SELECT * FROM members WHERE id = ?", [$_GET['edit-member']]) : null;
 
-// Logic User
+// edit User
 $users = fetchAll("SELECT * FROM users ORDER BY id ASC");
 $editUser = isset($_GET['edit-user']) ? fetchOne("SELECT * FROM users WHERE id = ?", [$_GET['edit-user']]) : null;
 // Hapus user
@@ -86,10 +86,10 @@ if (isset($_GET['delete'])) {
 
 //logic loans
 $loans = fetchAll("SELECT loans.*, books.title, members.name AS member_name FROM loans JOIN books ON loans.book_id= books.id JOIN members ON loans.member_id = members.id ORDER BY loans.id DESC");
-
+// seting fine per day
 $settingFine = getFinePerDay();
 
-// logic CRUD user, buku, member
+// logic CRUD user, buku, member, setting fine
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   if (isset($_POST['simpan-buku'])) {
     if ($_POST['mode-editBook'] == 'edit') {
@@ -576,80 +576,88 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <!-- Tabel Buku -->
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100">
-          <div class="table-container  h-[500px] overflow-y-auto overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50/50">
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Judul Buku
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Penulis
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Penerbit
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Stok
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider overflow-hidden">
-                    Deskripsi
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Lokasi (Rak)
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Tahun
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <?php foreach ($books as $book): ?>
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noBook++ ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900">
-                      <?= $book['title'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600"><?= $book['author'] ?></td>
-                    <td class="px-8 py-5 text-gray-600"><?= $book['publisher'] ?></td>
-                    <td class="px-8 py-5 text-gray-600 font-bold"><?= $book['stock'] ?></td>
-                    <td class="px-8 py-5 text-gray-600">
-                      <?= $book['description'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600"><?= $book['location'] ?></td>
-                    <td class="px-8 py-5 text-gray-600"><?= $book['year'] ?></td>
-                    <td class="px-8 py-5">
-                      <div class="flex items-center justify-center gap-3">
-                        <a href="#"
-                          class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-buku" data-id='<?= $book['id'] ?>' data-title='<?= $book['title'] ?>' data-author='<?= $book['author'] ?>' data-publisher='<?= $book['publisher'] ?>' data-stock="<?= ($book['stock']) ?>" data-description="<?= ($book['description']) ?>" data-location="<?= ($book['location']) ?>" data-year="<?= $book['year'] ?>">
-                          <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </a>
-                        <a href="?delete-buku=<?= $book['id'] ?>"
-                          class=" delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" onclick="return confirm('Apakah anda Yakin?')">
-                          <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </a>
-                      </div>
-                    </td>
+          <?php if (count($books) > 0) : ?>
+            <div class="table-container  h-[500px] overflow-y-auto overflow-x-auto no-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      No
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Judul Buku
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Penulis
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Penerbit
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Stok
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider overflow-hidden">
+                      Deskripsi
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Lokasi (Rak)
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Tahun
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                      Aksi
+                    </th>
                   </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <?php foreach ($books as $book): ?>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                      <td class="px-8 py-5 font-medium text-gray-600"><?= $noBook++ ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900">
+                        <?= $book['title'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600"><?= $book['author'] ?></td>
+                      <td class="px-8 py-5 text-gray-600"><?= $book['publisher'] ?></td>
+                      <td class="px-8 py-5 text-gray-600 font-bold"><?= $book['stock'] ?></td>
+                      <td class="px-8 py-5 text-gray-600">
+                        <?= $book['description'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600"><?= $book['location'] ?></td>
+                      <td class="px-8 py-5 text-gray-600"><?= $book['year'] ?></td>
+                      <td class="px-8 py-5">
+                        <div class="flex items-center justify-center gap-3">
+                          <a href="#"
+                            class="edit-btn p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all" data-action="edit-buku" data-id='<?= $book['id'] ?>' data-title='<?= $book['title'] ?>' data-author='<?= $book['author'] ?>' data-publisher='<?= $book['publisher'] ?>' data-stock="<?= ($book['stock']) ?>" data-description="<?= ($book['description']) ?>" data-location="<?= ($book['location']) ?>" data-year="<?= $book['year'] ?>">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                          </a>
+                          <a href="?delete-buku=<?= $book['id'] ?>"
+                            class=" delete-btn p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all" onclick="return confirm('Apakah anda Yakin?')">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else : ?>
+            <div class="col-span-full text-center py-20">
+              <h4 class="text-slate-500 text-lg font-medium">
+                Tidak ada Daftar Buku ditemukan.
+              </h4>
+            </div>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -1019,71 +1027,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50/50">
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Nama Peminjam
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Judul Buku
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Tanggal Pinjam
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Batas Pinjam
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Tanggal Kembali
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <?php foreach ($loans as $loan): ?>
-                  <?php $badge = loanStatus($loan) ?>
-                  <tr class="hover:bg-gray-50 transition-colors" id="loan-<?= $loan['id'] ?>">
-                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noPinjam++ ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900 <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
-                      <?= $loan['member_name'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600 font-semibold <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
-                      <?= $loan['title'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600 font-bold ">
-                      <?= $loan['loan_date'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600 font-bold ">
-                      <?= $loan['due_date'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600 font-bold">
-                      <?= $loan['return_date'] ?? '-' ?>
-                    </td>
-                    </td>
-                    <td class="px-8 py-5">
-                      <div class="block">
-                        <span class="px-4 py-1.5 rounded-full text-xs font-bold <?= $badge['class'] ?>"><?= $badge['status'] ?></span>
-                      </div>
-                    </td>
+          <?php if (count($loans) > 0) : ?>
+            <div class="table-container overflow-x-auto no-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      No
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Nama Peminjam
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Judul Buku
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Tanggal Pinjam
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Batas Pinjam
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Tanggal Kembali
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                      Status
+                    </th>
                   </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <?php foreach ($loans as $loan): ?>
+                    <?php $badge = loanStatus($loan) ?>
+                    <tr class="hover:bg-gray-50 transition-colors" id="loan-<?= $loan['id'] ?>">
+                      <td class="px-8 py-5 font-medium text-gray-600"><?= $noPinjam++ ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900 <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
+                        <?= $loan['member_name'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600 font-semibold <?= $loan['status'] == 'dikembalikan' ? 'selesai' : '' ?>">
+                        <?= $loan['title'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600 font-bold ">
+                        <?= $loan['loan_date'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600 font-bold ">
+                        <?= $loan['due_date'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600 font-bold">
+                        <?= $loan['return_date'] ?? '-' ?>
+                      </td>
+                      </td>
+                      <td class="px-8 py-5">
+                        <div class="block">
+                          <span class="px-4 py-1.5 rounded-full text-xs font-bold <?= $badge['class'] ?>"><?= $badge['status'] ?></span>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else : ?>
+            <div class="col-span-full text-center py-20">
+              <h4 class="text-slate-500 text-lg font-medium">
+                Tidak ada Data Peminjaman ditemukan.
+              </h4>
+            </div>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -1098,51 +1114,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50/50">
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Nama Peminjam
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Judul Buku
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Telat
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Denda
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <?php foreach ($loans as $loan) : ?>
-                  <?php
-                  $lateDays = calculateLateDays(
-                    $loan['due_date']
-                  );
-                  $fine = $settingFine * $lateDays;
-                  ?>
-                  <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
-                    <td class="px-8 py-5 font-bold text-gray-900"><?= $noDenda++ ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['member_name'] ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['title'] ?></td>
-                    <td class="px-8 py-5 text-gray-600"><?= $lateDays ?> Hari</td>
-                    <td class="px-8 py-5 font-bold text-red-600 text-center"><?= formatRupiah($fine) ?></td>
+          <?php if (count($loans) > 0) : ?>
+            <div class="table-container overflow-x-auto no-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      No
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Nama Peminjam
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Judul Buku
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Telat
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                      Denda
+                    </th>
                   </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <?php foreach ($loans as $loan) : ?>
+                    <?php
+                    $lateDays = calculateLateDays(
+                      $loan['due_date']
+                    );
+                    $fine = $settingFine * $lateDays;
+                    ?>
+                    <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100/50">
+                      <td class="px-8 py-5 font-bold text-gray-900"><?= $noDenda++ ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['member_name'] ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900"><?= $loan['title'] ?></td>
+                      <td class="px-8 py-5 text-gray-600"><?= $lateDays ?> Hari</td>
+                      <td class="px-8 py-5 font-bold text-red-600 text-center"><?= formatRupiah($fine) ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else : ?>
+            <div class="col-span-full text-center py-20">
+              <h4 class="text-slate-500 text-lg font-medium">
+                Tidak ada Denda ditemukan.
+              </h4>
+            </div>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -1174,57 +1198,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div
           class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
-          <div class="table-container overflow-x-auto no-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50/50">
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Peminjam
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Judul Buku
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    Tanggal
-                  </th>
-                  <th
-                    class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                    Aksi
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <?php foreach ($loans as $loan) : ?>
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-8 py-5 font-medium text-gray-600"><?= $noLaporan++ ?></td>
-                    <td class="px-8 py-5 font-bold text-gray-900">
-                      <?= $loan['member_name'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600">
-                      <?= $loan['title'] ?>
-                    </td>
-                    <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
-                    <td class="px-8 py-5">
-                      <div class="flex items-center justify-center">
-                        <button
-                          class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                          title="Hapus">
-                          <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                      </div>
-                    </td>
+          <?php if (count($loans) > 0) : ?>
+            <div class="table-container overflow-x-auto no-scrollbar">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      No
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Peminjam
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Judul Buku
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Tanggal
+                    </th>
+                    <th
+                      class="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                      Aksi
+                    </th>
                   </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <?php foreach ($loans as $loan) : ?>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                      <td class="px-8 py-5 font-medium text-gray-600"><?= $noLaporan++ ?></td>
+                      <td class="px-8 py-5 font-bold text-gray-900">
+                        <?= $loan['member_name'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600">
+                        <?= $loan['title'] ?>
+                      </td>
+                      <td class="px-8 py-5 text-gray-600"><?= $loan['loan_date'] ?></td>
+                      <td class="px-8 py-5">
+                        <div class="flex items-center justify-center">
+                          <button
+                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            title="Hapus">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          <?php else : ?>
+            <div class="col-span-full text-center py-20">
+              <h4 class="text-slate-500 text-lg font-medium">
+                Tidak ada Laporan ditemukan.
+              </h4>
+            </div>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -1245,29 +1277,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           </h3>
           <div class="space-y-6">
             <form method="POST">
-            <div class="space-y-2">
-              <label
-                class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Besaran Denda Per Hari (Rp)</label>
-              <div class="relative">
-                <input
-                  type="number"
-                  value="<?= $settingFine ?>"
-                  name="fine_per_day"
-                  class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-lg font-bold"/>
+              <div class="space-y-2">
+                <label
+                  class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Besaran Denda Per Hari (Rp)</label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    value="<?= $settingFine ?>"
+                    name="fine_per_day"
+                    class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-lg font-bold" />
+                </div>
+                <p class="text-xs text-gray-500 ml-1 italic">
+                  *Denda akan otomatis dihitung saat buku melewati batas tanggal
+                  kembali.
+                </p>
               </div>
-              <p class="text-xs text-gray-500 ml-1 italic">
-                *Denda akan otomatis dihitung saat buku melewati batas tanggal
-                kembali.
-              </p>
-            </div>
 
-            <div class="pt-4">
-              <button
-                type="submit"
-                class="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all tracking-widest">
-                SIMPAN PERUBAHAN
-              </button>
-            </div>
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  class="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all tracking-widest">
+                  SIMPAN PERUBAHAN
+                </button>
+              </div>
           </div>
           </form>
         </div>
@@ -1284,7 +1316,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Initialize Lucide Icons
     lucide.createIcons();
 
-    // Logic Edit ke Form tanpa reload halaman
+    // Logic Edit Form tanpa reload
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function(event) {
         event.preventDefault();

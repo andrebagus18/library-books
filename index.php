@@ -3,13 +3,12 @@ session_start();
 require_once 'config/database.php';
 require_once 'functions/helper.php';
 
+// generate buku
 $books = fetchAll("SELECT * FROM books WHERE stock > 0 ORDER BY id DESC");
-
-
-$carouselBooks = getCarouselBooks($pdo);
+// pagination
 $pagination = getPaginatedBooks();
 $books = $pagination['data'];
-
+// cek login
 $isLogin = isLogin();
 $isAdmin = $isLogin ? isAdmin() : false;
 $link = $isLogin ? ($isAdmin ? 'public/admin.php' : 'public/member.php') : 'public/login.php';
@@ -21,7 +20,7 @@ if ($isLogin) {
     [$_SESSION['user_id']]
   );
 }
-// Logic Pinjam
+// Logic Pinjam buku
 if (isset($_POST['pinjam'])) {
   $book_id = $_POST['book_id'];
   $member_id = $member['id'];
@@ -32,10 +31,10 @@ if (isset($_POST['pinjam'])) {
   if ($book && $book['stock'] > 0) {
     query("UPDATE books SET stock = stock - 1 WHERE id=?", [$book_id]);
     query("INSERT INTO loans (book_id, member_id, loan_date, due_date, status) VALUES (?, ?, CURRENT_DATE, CURRENT_DATE + INTERVAL '7 days', 'dipinjam')", [$book_id, $member_id]);
-    redirect('index.php');
+    setFlash('success', 'Buku berhasil dipinjam!');
   }
+  redirect('index.php');
 }
-
 
 ?>
 
@@ -112,6 +111,22 @@ if (isset($_POST['pinjam'])) {
       animation: float 6s ease-in-out infinite;
     }
 
+    .alert {
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
     @keyframes float {
       0% {
         transform: translateY(0px) rotate(0deg);
@@ -124,10 +139,6 @@ if (isset($_POST['pinjam'])) {
       100% {
         transform: translateY(0px) rotate(0deg);
       }
-    }
-
-    .carousel-container {
-      scroll-behavior: smooth;
     }
 
     .subscribe-alert {
@@ -162,44 +173,6 @@ if (isset($_POST['pinjam'])) {
     .animate-fadeIn {
       animation: fadeIn 0.25s ease-out forwards;
     }
-
-    /* Carousel Fade */
-    #carousel-content {
-      transition: opacity 0.4s ease;
-    }
-
-    #carousel-content.fade-out {
-      opacity: 0;
-    }
-
-    .carousel-info {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    /* Slide Animation */
-    #carousel-track {
-      display: flex;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform;
-    }
-
-    .carousel-slide {
-      flex: 0 0 100%;
-      width: 100%;
-      min-height: 500px;
-      display: flex;
-      align-items: center;
-    }
-
-    .carousel-image {
-      width: 100%;
-      max-width: 320px;
-      height: 450px;
-      object-fit: cover;
-      border-radius: 30px;
-    }
   </style>
 </head>
 
@@ -207,20 +180,19 @@ if (isset($_POST['pinjam'])) {
   <!-- Navbar -->
   <nav class="fixed top-0 left-0 right-0 z-50 glass-nav">
     <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-      <!-- Left: Logo -->
+      <!-- Logo -->
       <div class="flex items-center">
         <a href="#" id="logo" class="text-2xl font-bold text-primary tracking-tight">LiBooks</a>
       </div>
 
-      <!-- Middle: Navigation -->
+      <!-- Navigation Link -->
       <div class="hidden md:flex items-center space-x-8">
         <a href="#katalog" class="nav-link font-medium hover:text-primary transition-colors">Koleksi Buku</a>
         <a href="#kategori" class="nav-link font-medium hover:text-primary transition-colors">Kategori</a>
-        <a href="#carousel" class="nav-link font-medium hover:text-primary transition-colors">Terbaru</a>
         <a href="<?= $link ?>" class="nav-link font-medium hover:text-primary transition-colors">Dashboard</a>
       </div>
 
-      <!-- Right: Auth -->
+      <!-- Auth -->
       <?php if ($isLogin) : ?>
         <div class="flex items-center space-x-4">
           <a href="public/logout.php"
@@ -279,7 +251,7 @@ if (isset($_POST['pinjam'])) {
           </button>
         </div>
 
-        <!-- Social Proof -->
+        <!-- Icon -->
         <div class="flex items-center space-x-4 pt-4">
           <div class="flex -space-x-3">
             <div class="w-10 h-10 rounded-full border-2 border-secondary bg-slate-300 flex items-center justify-center">
@@ -307,7 +279,7 @@ if (isset($_POST['pinjam'])) {
         </div>
       </div>
 
-      <!-- Right Column: Visual -->
+      <!-- image hero -->
       <div class="order-1 lg:order-2 relative flex justify-center items-center overflow-hidden py-12">
         <div class="absolute w-[120%] h-[120%] bg-primary/5 rounded-full blur-3xl -z-10"></div>
         <div class="relative w-full max-w-sm">
@@ -380,7 +352,6 @@ if (isset($_POST['pinjam'])) {
 
       <!-- Book Grid -->
       <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        <!-- Books will be injected here -->
         <?php if (count($books) > 0) : ?>
           <?php foreach ($books as $book) : ?>
             <?php $isLogin = isLogin();
@@ -439,8 +410,6 @@ if (isset($_POST['pinjam'])) {
 
       <!-- Pagination -->
       <div id="pagination" class="flex justify-center items-center space-x-2 mt-16">
-        <!-- Pagination buttons will be injected here -->
-        <!-- Prev Button -->
         <?php
         $firstPage = ($pagination['currentPage'] === 1);
         $prevClass = $firstPage ? "bg-secondary/20 text-slate-300 cursor-not-allowed" : "bg-white text-slate-600 hover:text-primary border border-secondary/30 shadow-sm";
@@ -473,51 +442,6 @@ if (isset($_POST['pinjam'])) {
     </div>
   </section>
 
-  <!-- Carousel Section -->
-  <section id="carousel" class="py-24 bg-accent/30 overflow-hidden">
-    <div class="container mx-auto px-6 md:px-[70px]">
-      <div class="text-center mb-8 space-y-2">
-        <h2 class="text-4xl md:text-4xl font-bold text-primary">
-          Terbaru
-        </h2>
-        <p class="text-slate-500 text-sm md:text-base">
-          Koleksi buku pilihan yang baru saja tiba di perpustakaan kami. Jangan sampai ketinggalan!
-        </p>
-      </div>
-
-      <div class="relative">
-        <!-- Viewport -->
-        <div class="overflow-hidden rounded-[40px] shadow-2xl bg-white border border-secondary/20">
-          <div id="carousel-track">
-            <!-- Slides will be injected here -->
-          </div>
-        </div>
-
-        <!-- Tombol PREV -->
-        <button onclick="prevSlide()" id="btn-prev" aria-label="Sebelumnya"
-          class="absolute -left-6 md:-left-10 top-1/2 -translate-y-1/2 z-20
-                 w-12 h-12 rounded-full bg-primary text-white
-                 flex items-center justify-center
-                 shadow-lg hover:bg-amber-700 transition-all active:scale-95">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        <!-- Tombol NEXT -->
-        <button onclick="nextSlide()" id="btn-next" aria-label="Berikutnya"
-          class="absolute -right-6 md:-right-10 top-1/2 -translate-y-1/2 z-20
-                 w-12 h-12 rounded-full bg-primary text-white
-                 flex items-center justify-center
-                 shadow-lg hover:bg-amber-700 transition-all active:scale-95">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </section>
-
   <!-- Subscribe Section -->
   <section id="subscribe" class="py-24">
     <div class="container mx-auto px-6 md:px-[70px]">
@@ -530,10 +454,8 @@ if (isset($_POST['pinjam'])) {
 
       <div
         class="bg-primary rounded-[40px] p-12 text-center text-white space-y-8 shadow-2xl shadow-primary/20 relative overflow-hidden">
-        <!-- Ornament -->
         <div class="absolute -top-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
         <div class="relative z-10 max-w-lg mx-auto space-y-4">
           <div class="flex flex-col sm:flex-row gap-3">
             <input type="email" id="subscribe-email" placeholder="Alamat email Anda"
@@ -592,31 +514,29 @@ if (isset($_POST['pinjam'])) {
   </div>
 
   <script>
-    const carouselBooks = <?= json_encode($carouselBooks) ?>;
-
     // ===== MODAL DETAIL =====
-    function openModal(carouselBooks) {
+    function openModal(books) {
       const modal = document.getElementById('modal-detail');
       const body = document.getElementById('modal-body');
-      const image = carouselBooks.image_url ? `images/${carouselBooks.image_url}` : 'images/foto1.jpeg';
+      const image = books.image_url ? `images/${books.image_url}` : 'images/foto1.jpeg';
 
       body.innerHTML = `
           <div class="flex flex-col sm:flex-row gap-6 items-start">
-            <img src="${image}" alt="${carouselBooks.title}"
+            <img src="${image}" alt="${books.title}"
                  onerror="this.onerror=null;this.src='images/foto1.jpeg'"
                  class="w-full sm:w-40 h-56 object-cover rounded-2xl shadow-lg flex-shrink-0">
             <div class="space-y-3 flex-1">
-              <h3 class="text-2xl font-bold text-slate-800">${carouselBooks.title}</h3>
-              <p class="text-primary font-semibold">${carouselBooks.author}</p>
+              <h3 class="text-2xl font-bold text-slate-800">${books.title}</h3>
+              <p class="text-primary font-semibold">${books.author}</p>
               <div class="flex gap-4 text-sm text-slate-400">
-                <span>${carouselBooks.publisher}</span>
+                <span>${books.publisher}</span>
                 <span>•</span>
-                <span>${carouselBooks.year}</span>
+                <span>${books.year}</span>
               </div>
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${carouselBooks.stock > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
-                ${carouselBooks.stock > 0 ? 'Tersedia — Stok: ' + carouselBooks.stock : 'Stok Habis'}
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${books.stock > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                ${books.stock > 0 ? 'Tersedia — Stok: ' + books.stock : 'Stok Habis'}
               </span>
-              <p class="text-slate-500 leading-relaxed text-sm">${carouselBooks.description}</p>
+              <p class="text-slate-500 leading-relaxed text-sm">${books.description}</p>
             </div>
           </div>
         `;
@@ -631,7 +551,6 @@ if (isset($_POST['pinjam'])) {
       modal.classList.remove('flex');
       document.body.style.overflow = 'auto';
     }
-
     document.addEventListener('click', function(e) {
       const modal = document.getElementById('modal-detail');
       if (e.target === modal) closeModal();
@@ -661,19 +580,6 @@ if (isset($_POST['pinjam'])) {
     });
     document.getElementById('button-search').addEventListener('click', handleSearch);
 
-    // Helper potong kata
-    function truncateWords(text, maxWords) {
-      const words = text.split(' ');
-      if (words.length <= maxWords) return text;
-      return words.slice(0, maxWords).join(' ') + '...';
-    }
-
-    function getSynopsisLimit() {
-      if (window.innerWidth >= 1024) return 300;
-      if (window.innerWidth >= 768) return 200;
-      return 100;
-    }
-
     async function changePage(page) {
       const response = await fetch(`?page=${page}`);
       const html = await response.text();
@@ -691,97 +597,6 @@ if (isset($_POST['pinjam'])) {
         });
     }
 
-    let currentSlide = 0;
-
-    function renderCarousel() {
-      const track = document.getElementById("carousel-track");
-      track.innerHTML = carouselBooks.map((book, index) => {
-        const sinopsisTampil = truncateWords(book.description, getSynopsisLimit());
-        // book.isCarousel = true; //  modal logic
-
-        return `
-          <div class="carousel-slide p-8 md:p-12">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center text-center lg:text-left">
-              <!-- Left: Cover -->
-              <div class="lg:col-span-5 flex justify-center">
-                <div class="relative group">
-                  <div class="absolute inset-0 bg-primary/20 rounded-[30px] blur-2xl group-hover:bg-primary/30 transition-all"></div>
-                  <img src="images/${book.image_url}" alt="${book.title}" 
-                       onerror="this.onerror=null; this.src='images/foto1.jpeg'"
-                       class="relative carousel-image shadow-2xl transform group-hover:scale-105 transition-transform duration-500">
-                </div>
-              </div>
-              
-              <!-- Right: Info -->
-              <div class="lg:col-span-7 carousel-info">
-                <div class="space-y-3">
-                  <span class="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest">${book.category_name}</span>
-                  <h2 class="text-4xl md:text-5xl font-bold text-slate-800 leading-tight">${book.title}</h2>
-                  <p class="text-xl font-medium text-primary/80 italic">${book.author}</p>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold text-slate-500 border-y border-secondary/30 py-3">
-                  <div class="space-y-1">
-                    <span class="block text-slate-400 font-normal">Penerbit</span>
-                    ${book.publisher}
-                  </div>
-                  <div class="space-y-1">
-                    <span class="block text-slate-400 font-normal">Tahun</span>
-                    ${book.year}
-                  </div>
-                  <div class="space-y-1">
-                    <span class="block text-slate-400 font-normal">Stok</span>
-                    ${book.stock}
-                  </div>
-                  <div class="space-y-1">
-                    <span class="block text-slate-400 font-normal">Status</span>
-                    <span class="${book.stock > 0 ? "text-green-500" : "text-red-500"}">${book.stock > 0 ? "Tersedia" : "Habis"}</span>
-                  </div>
-                </div>
-                
-                <div class="space-y-3">
-                  <h4 class="font-bold text-slate-700">Sinopsis</h4>
-                  <p class="text-slate-500 leading-relaxed text-justify h-[100px] overflow-hidden">
-                    ${sinopsisTampil}
-                  </p>
-                  <div class="pt-2">
-                    <button onclick='openCarouselModal(${book.id})' class="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-amber-700 transition-all active:scale-95 shadow-md text-sm">
-                      Lihat Detail
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      updateCarouselPosition();
-    }
-    renderCarousel();
-
-    function openCarouselModal(id) {
-      const book = carouselBooks.find(book => book.id === id);
-      openModal(book);
-    }
-
-    function updateCarouselPosition() {
-      const track = document.getElementById("carousel-track");
-      track.style.transform = `translateX(-${currentSlide * 100}%)`;
-    }
-
-    function nextSlide() {
-      currentSlide = (currentSlide + 1) % carouselBooks.length;
-      updateCarouselPosition();
-    }
-
-    function prevSlide() {
-      currentSlide = (currentSlide - 1 + carouselBooks.length) % carouselBooks.length;
-      updateCarouselPosition();
-    }
-
     function handleSubscribe() {
       const input = document.getElementById("subscribe-email");
       const msg = document.getElementById("subscribe-msg");
@@ -794,13 +609,6 @@ if (isset($_POST['pinjam'])) {
         }, 3000);
       }
     }
-
-    // Initial Render
-    document.addEventListener("DOMContentLoaded", () => {
-      renderCarousel();
-    });
-
-    window.addEventListener('resize', renderCarousel);
     window.addEventListener('load', () => {
 
       if (window.location.search) {

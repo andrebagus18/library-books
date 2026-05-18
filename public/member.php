@@ -6,12 +6,12 @@ require_once '../functions/helper.php';
 
 $flash = getFlash();
 $isLogin = isLogin();
-$totalFine = 0; 
+$totalFine = 0;
 $totalLateDays = 0;
 $noBuku = 1;
 $noDenda = 1;
 $noPinjam = 1;
-$noRiwayat = 1; 
+$noRiwayat = 1;
 $settingFine = getFinePerDay();
 $totalFine = updateAllFines();
 
@@ -24,7 +24,8 @@ if ($isLogin) {
 }
 $member_id = $member['id'];
 
-$totalLoans = fetchOne("SELECT COUNT(*) as total FROM loans")['total'];
+
+$totalLoans = fetchOne("SELECT COUNT(*) as total FROM loans WHERE member_id = ?", [$member['id']])['total'];
 $totalDipinjam = fetchOne(
     "SELECT COUNT(*) as total
      FROM loans
@@ -45,7 +46,7 @@ $totalFine = fetchOne("
     WHERE fine_paid = false
 ")['total'];
 
-
+// select all loans id member
 $loans = fetchAll(
     "SELECT
         loans.*,
@@ -69,10 +70,9 @@ $loansDenda = fetchAll("
     WHERE loans.fine_paid = false
     AND loans.due_date < CURRENT_DATE
 ");
-
 $lateTotal = count($loansDenda);
 
-
+// recent activities
 $activities = fetchAll(
     "SELECT
         loans.*,
@@ -86,6 +86,7 @@ $activities = fetchAll(
     [$member_id]
 );
 
+/// logic kembalikan, update fine, update stock buku
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ((isset($_POST['kembalikan']))) {
         $id = $_POST['id'];
@@ -120,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS v4 CDN (using alpha/latest as it's v4) -->
+    <!-- Tailwind CSS v4 CDN  -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -536,7 +537,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2">
                         <?php if (!empty($loans)) : ?>
-                        <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                            <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
                                 <div class="table-container overflow-x-auto">
                                     <table class="w-full text-left border-collapse">
                                         <thead>
@@ -548,7 +549,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
-                                        <?php foreach ($loansDenda as $loanDenda) : ?>
+                                            <?php foreach ($loansDenda as $loanDenda) : ?>
                                                 <?php
                                                 $lateDays = calculateLateDays(
                                                     $loanDenda['due_date']
@@ -561,17 +562,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     <td class="px-8 py-5 text-gray-600"><?= $lateDays ?></td>
                                                     <td class="px-8 py-5 font-bold text-red-600"><?= formatRupiah($fine) ?></td>
                                                 </tr>
-                                                <?php endforeach; ?>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
-                                <?php else : ?>
-                                    <div class="col-span-full text-center py-20">
-                                        <h4 class="text-slate-500 text-lg font-medium">
-                                            Tidak ada Denda yang dibayarkan.
-                                        </h4>
-                                    </div>
-                                <?php endif; ?>
+                            <?php else : ?>
+                                <div class="col-span-full text-center py-20">
+                                    <h4 class="text-slate-500 text-lg font-medium">
+                                        Tidak ada Denda yang dibayarkan.
+                                    </h4>
+                                </div>
+                            <?php endif; ?>
                             </div>
                     </div>
 
@@ -636,7 +637,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             link.addEventListener('click', () => {
                 const targetId = link.getAttribute('data-target');
 
-                // Update Active Link State
+                // Link State
                 navLinks.forEach(l => {
                     l.classList.remove('active', 'bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
                     l.classList.add('text-gray-600', 'hover:bg-primary/5', 'hover:text-primary');
@@ -660,7 +661,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             });
         });
 
-        // Set initial active state for dashboard link
+        // active dashboard link
         document.querySelector('[data-target="dashboard"]').classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
         document.querySelector('[data-target="dashboard"]').classList.remove('text-gray-600');
 
